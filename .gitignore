@@ -1,0 +1,11 @@
+*.png
+*.jpg
+*.h5
+*.ipynb
+*.pkl 
+*.csv
+
+examples/
+weight_comp/
+write_up_so_far/
+__pycache__/
