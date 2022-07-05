@@ -32,6 +32,7 @@ def train_model(hyp_params, train_data, val_set, model, loss):
         os.makedirs(os.path.join(hyp_params['model_path'], 'params'))
 
     # Begin primary training loop
+    print(f"Model saving location:\n{hyp_params['model_path']}")
     print(f"Beginning training of {hyp_params['experiment']}, " +
           f"latent_dim: {hyp_params['latent_dim']}.")
     for epoch in range(hyp_params['last_epoch'] + 1, hyp_params['max_epochs'] + 1):
@@ -120,8 +121,8 @@ def train_model(hyp_params, train_data, val_set, model, loss):
     results = dict()
     results['model'] = model
     results['loss'] = loss
-    results['val_loss_history'] = train_params['val_loss_results']
-    results['train_loss_history'] = train_params['train_loss_results']
+    results['val_loss_history'] = hyp_params['val_loss_results']
+    results['train_loss_history'] = hyp_params['train_loss_results']
     results['val_loss_comps'] = train_params['val_loss_comps_avgs']
 
     return results
