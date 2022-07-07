@@ -63,7 +63,7 @@ def local_fit(model, epics, data, ax, color, model_name, column_name, lift_dim, 
         ax.plot([0], [0], '--', lw=2.5, color=color, label=label+" FF")
         return None
 
-examples_folder = r"C:\Users\josep\Documents\School Work\Research\Curtis\Machine_Learning\my_work\DLDMD-newest\examples"
+examples_folder = os.path.join(os.getcwd(), "examples")
 
 models = os.listdir(examples_folder)
 

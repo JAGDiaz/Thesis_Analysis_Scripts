@@ -89,7 +89,7 @@ def printProgressBar(value,label,maximum):
     if value == maximum:
         print()
 
-examples_folder = "C:\\Users\\josep\\Documents\\School Work\\Research\\Curtis\\Machine_Learning\\my_work\\DLDMD-newest\\examples"
+examples_folder = os.path.join(os.getcwd(), "examples")
 
 models = os.listdir(examples_folder)
 
@@ -108,7 +108,7 @@ for model, model_name in zip(model_folders, models):
         model_weight_folder = os.path.join(trained_folder, dim_run)
         weight_files = [os.path.join(model_weight_folder, file) for file in os.listdir(model_weight_folder) if file.endswith('.h5')]
 
-        if len(weight_files) == 1000 and not os.path.exists(os.path.join(model_weight_folder, 'divergence_results.csv')):
+        if len(weight_files) == 1000:# and not os.path.exists(os.path.join(model_weight_folder, 'divergence_results.csv')):
             h5_file_prev = h5py.File(weight_files[0], 'r')
         else:
             continue
