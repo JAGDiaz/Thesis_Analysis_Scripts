@@ -55,12 +55,13 @@ model_folders = [os.path.join(examples_folder, model, "trained_models") for mode
 figures_and_axes = None
 
 transient_percent = .2
+cutoffs = {'duffing': 5, 'duffing_sd': 5, 'van_der_pol': 9}
 
 for model_folder, model_name in zip(model_folders, models):
 
     # [os.remove(os.path.join(examples_folder, model_name, file)) for file in os.listdir(os.path.join(examples_folder, model_name)) if file.endswith('.png')]
 
-    individual_runs = os.listdir(model_folder)[:8]
+    individual_runs = os.listdir(model_folder)[:cutoffs[model_name]]
     individual_runs_folder = [os.path.join(model_folder, individual_run) for individual_run in individual_runs]
     color_map = plt.cm.get_cmap('tab20b', len(individual_runs))
     colors = color_map([qq for qq in range(len(individual_runs))])
