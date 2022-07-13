@@ -9,7 +9,6 @@ examples_folder = os.path.join(os.getcwd(), "examples")
 models = os.listdir(examples_folder)
 model_folders = [os.path.join(examples_folder, model, "trained_models") for model in models]
 
-#dim_cut_off = 5
 cutoffs = {'duffing': 5, 'duffing_sd': 5, 'van_der_pol': 9}
 
 for model_folder, model_name in zip(model_folders, models):

@@ -33,15 +33,9 @@ def div_between_pdfs(data_set1, data_set2, kde_kernel='epa'):
     set_min = min((data_set1.min(), data_set2.min()))
     over_shoot = .01*(set_max - set_min)
 
-    # _, bins1 = np.histogram(data_set1)
-    # _, bins2 = np.histogram(data_set2)
-
-    # bandwidth_1 = 0.2886751345948129*np.mean(bins1[1:] - bins1[:-1])
-    # bandwidth_2 = 0.2886751345948129*np.mean(bins2[1:] - bins2[:-1])
-
-    new_x = np.linspace(set_min-over_shoot, set_max+over_shoot, discrete_points)#.reshape(discrete_points, 1)
-    data_set1 = data_set1.flatten()#.reshape(data_set1.size, 1)
-    data_set2 = data_set2.flatten()#.reshape(data_set2.size, 1)
+    new_x = np.linspace(set_min-over_shoot, set_max+over_shoot, discrete_points)
+    data_set1 = data_set1.flatten()
+    data_set2 = data_set2.flatten()
 
 
     estimator_1 = FFTKDE(kernel=kde_kernel, bw="ISJ").fit(data_set1)
@@ -52,14 +46,9 @@ def div_between_pdfs(data_set1, data_set2, kde_kernel='epa'):
     pdf1 = estimator_1.evaluate(new_x)
     pdf2 = estimator_2.evaluate(new_x)
 
-    # kde_1 = KernelDensity(kernel=kde_kernel, bandwidth=bandwidth_1).fit(data_set1)
-    # kde_2 = KernelDensity(kernel=kde_kernel, bandwidth=bandwidth_2).fit(data_set2)
 
-    # pdf1 = np.exp(kde_1.score_samples(new_x))
-    # pdf2 = np.exp(kde_2.score_samples(new_x))
-
-    simpson_area_1 = integrate.simpson(pdf1, new_x)#[:,0])
-    simpson_area_2 = integrate.simpson(pdf2, new_x)#[:,0])
+    simpson_area_1 = integrate.simpson(pdf1, new_x)
+    simpson_area_2 = integrate.simpson(pdf2, new_x)
     
     pdf1 /= simpson_area_1
     pdf2 /= simpson_area_2
