@@ -4,6 +4,7 @@
 *.ipynb
 *.pkl 
 *.csv
+*.gif
 
 __pycache__/
 examples/

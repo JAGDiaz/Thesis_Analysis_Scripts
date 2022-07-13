@@ -1,5 +1,4 @@
 
-import enum
 import os
 import sys
 import h5py 
@@ -7,8 +6,6 @@ import numpy as np
 import pandas as pd
 from KDEpy import FFTKDE
 import scipy.integrate as integrate
-import datetime as dt
-import matplotlib.pyplot as plt
 import pickle as pkl
 
 def walk_h5(file_handle, space="", num_spaces=2):
@@ -68,9 +65,9 @@ def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ'):
             estimator = FFTKDE(kernel=kde_kernel, bw=kde_bw).fit(data)
             layer_bandwidths[jj] = estimator.bw
             pdf = estimator.evaluate(layer_support)
-            pdf /= integrate.simpson(pdf, layer_support)
+            simpson_area = integrate.simpson(pdf, layer_support)
 
-            layer_pdfs[jj] = pdf
+            layer_pdfs[jj] = pdf/simpson_area
         
         pdfs[ii] = layer_pdfs
         supports[ii] = layer_support
@@ -97,7 +94,7 @@ for model, model_name in zip(model_folders, models):
         model_weight_folder = os.path.join(trained_folder, dim_run)
         weight_files = [os.path.join(model_weight_folder, file) for file in os.listdir(model_weight_folder) if file.endswith('.h5')]
 
-        if len(weight_files) != 1000:# and not os.path.exists(os.path.join(model_weight_folder, 'divergence_results.csv')):
+        if len(weight_files) != 1000 and not os.path.exists(os.path.join(model_weight_folder, 'divergence_results.csv')):
             continue
 
         enc_weights = [None]*len(weight_files)
@@ -118,7 +115,7 @@ for model, model_name in zip(model_folders, models):
             h5_file.close()
 
         del h5_file
-        printProgressBar(0, 4, dim_run)
+        printProgressBar(0, dim_run, 4)
 
         enc_weights = np.array(enc_weights, dtype=object)
         dec_weights = np.array(dec_weights, dtype=object)
@@ -135,15 +132,9 @@ for model, model_name in zip(model_folders, models):
         del full_weight_dict
 
 
-        if os.path.exists(os.path.join(model, "all_enc_weights_numpy_array.pkl")):
-            os.remove(os.path.join(model, "all_enc_weights_numpy_array.pkl"))
-        if os.path.exists(os.path.join(model, "all_dec_weights_numpy_array.pkl")):
-            os.remove(os.path.join(model, "all_dec_weights_numpy_array.pkl"))
-
-
         enc_pdfs, enc_supports, enc_bws = pdf_creator(enc_weights_diff)
         dec_pdfs, dec_supports, dec_bws = pdf_creator(dec_weights_diff)
-        printProgressBar(1, 4, dim_run)
+        printProgressBar(1, dim_run, 4)
 
         full_weight_diff_dict = {**{lab:layer for lab, layer in zip(enc_labels, enc_weights_diff.T)}, 
                                  **{lab:layer for lab, layer in zip(dec_labels, dec_weights_diff.T)}}
@@ -156,7 +147,7 @@ for model, model_name in zip(model_folders, models):
 
         enc_divergences = get_diveregences(enc_pdfs, enc_supports)
         dec_divergences = get_diveregences(dec_pdfs, dec_supports)        
-        printProgressBar(2, 4, dim_run)
+        printProgressBar(2, dim_run, 4)
         del enc_supports, dec_supports, enc_pdfs, dec_pdfs
 
         all_divergences = np.concatenate([enc_divergences, dec_divergences], axis=0).T
@@ -170,7 +161,7 @@ for model, model_name in zip(model_folders, models):
         data_frame = pd.DataFrame(data=all_bws, columns=column_labels, index=np.arange(all_bws.shape[0])+1)
         data_frame.to_csv(os.path.join(model_weight_folder, "bandwidth_results.csv"))
 
-        printProgressBar(3, 4, dim_run)
+        printProgressBar(3, dim_run, 4)
         del enc_divergences, dec_divergences, all_divergences
         del enc_bws, dec_bws, all_bws
         del data_frame
