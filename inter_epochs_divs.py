@@ -4,7 +4,6 @@ import sys
 import h5py 
 import numpy as np
 import pandas as pd
-from sklearn.neighbors import KernelDensity
 from KDEpy import FFTKDE
 import scipy.integrate as integrate
 import datetime as dt
@@ -52,7 +51,7 @@ def div_between_pdfs(data_set1, data_set2, kde_kernel='epa'):
     
     pdf1 /= simpson_area_1
     pdf2 /= simpson_area_2
-
+    
     # fig, ax = plt.subplots(1, 2, figsize=(16, 7))
 
     # ax[0].hist(data_set1, bins='auto', density=True)
