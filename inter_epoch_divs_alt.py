@@ -94,7 +94,7 @@ for model, model_name in zip(model_folders, models):
         model_weight_folder = os.path.join(trained_folder, dim_run)
         weight_files = [os.path.join(model_weight_folder, file) for file in os.listdir(model_weight_folder) if file.endswith('.h5')]
 
-        if len(weight_files) != 1000 and not os.path.exists(os.path.join(model_weight_folder, 'divergence_results.csv')):
+        if len(weight_files) != 1000:# or os.path.exists(os.path.join(model_weight_folder, 'divergence_results.csv')):
             continue
 
         enc_weights = [None]*len(weight_files)

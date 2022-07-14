@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.optimize import curve_fit
 from scipy.stats import t
+from matplotlib.ticker import FormatStrFormatter
+plt.rcParams["text.usetex"] = True
 
 def nonlinear_model(x,a,b,c):
     return -a*(x*x)/(x*x + b) + c
@@ -54,13 +56,13 @@ def local_fit(model, epics, data, ax, color, model_name, column_name, lift_dim, 
             regression_CIs(epics, data, model)
         d_mean = np.mean(np.abs(y - data))
 
-        ax.plot(x, y, '--', lw=2.5, color=color, label=label)
-        ax.fill_between(x, y+d_mean, y-d_mean, alpha=.20, fc=color)
-        ax.fill_between(x, y_ru, y_rl, alpha=.20, fc=color)#, label=r"95% RV interval")
-        return opt_params
+        #ax.plot(x, y, '--', lw=2.5, color=color, label=label)
+        #ax.fill_between(x, y+d_mean, y-d_mean, alpha=.20, fc=color)
+        #ax.fill_between(x, y_ru, y_rl, alpha=.20, fc=color)#, label=r"95% RV interval")
+        return opt_params, x, y, d_mean, y_rl, y_ru
     except:
         print(f"Fit failure for {model_name}, {column_name}, {lift_dim}, {label}.")
-        ax.plot([0], [0], '--', lw=2.5, color=color, label=label+" FF")
+        #ax.plot([0], [0], '--', lw=2.5, color=color, label=label+" FF")
         return None
 
 examples_folder = os.path.join(os.getcwd(), "examples")
@@ -112,54 +114,32 @@ for model, model_name in zip(model_folders, models):
 
         for col in data_frame.columns:
 
-            datum = np.log10(data_frame[col].values)[cut_off:]
-
-            # fig, axes = plt.subplots(num_rows, 2, figsize=(9*2, 7*num_rows), sharex='col')
-            # axes = axes.flatten()
-
-            # for ax, key in zip(axes, keys):
-                # ax.plot(inter_epoch, datum, '.k')
-                # # for jj in range(1, 5):
-                    # # try:
-                        # # coeffs = np.polyfit(inter_epoch, datum, jj)
-                        # # fit_func = lambda ex: sum([coef*ex**ii for ii, coef in enumerate(coeffs[::-1])])
-                        # # ax.plot(inter_epoch, fit_func(inter_epoch), '-', label=f"{jj} degree fit")
-                    # # except:
-                        # # print(f"Fit failure for {jj} degree: {model_name}, {lat_dim}, {col}")
-                # local_fit(model_dict[key], inter_epoch, datum, ax, 'red', model_name, 
-                        # col, lat_dim, eqn_dict[key])
-                # # ax.set_yscale('log')
-
-                # ax.grid(True, which='both')
-                # ax.set_ylabel("$\log_{10}$ Divergences", size=15)
-                # ax.tick_params(axis='y', length=9, labelsize=12.5)
-                # ax.tick_params(axis='x', length=0)
-                # ax.legend(loc='best', fontsize=20)
-
-            # fig.suptitle(f"Model: {model_name}, Lat_dim: {lat_dim}, Layer: {col}", size=25, y=.99)
-            # axes[-1].set_xlabel("Inter-epoch", size=15)
-            # fig.tight_layout()
-            # fig.savefig(f"{divs_folder}\\div_plot_{col}.png")
-            # plt.close(fig)
-            # del fig, axes, datum
+            datum = data_frame[col].values[cut_off:]
+            log10_datum = np.log10(datum)
 
             fig, ax = plt.subplots(figsize=(10, 7))
             
             ax.plot(inter_epoch, datum, '.k')
-            params = local_fit(model_dict['linear'], inter_epoch, datum, ax, 'red', model_name, 
-                               col, lat_dim, eqn_dict['linear'])
+            params, x_fit, y_fit, d_mean, y_l, y_u = local_fit(model_dict['linear'], inter_epoch, log10_datum, ax, 'red', model_name, 
+                                                               col, lat_dim, eqn_dict['linear'])
 
-            param_string = ", ".join([f"{chr(jj)} = {params[kk]:.2e}" for kk, jj in enumerate(range(97, 97+len(params)))]) \
-                if params is not None else ""
+            ax.plot(x_fit, 10**y_fit, '--', color='red')
+            ax.fill_between(x_fit, 10**y_u, 10**y_l, alpha=.20, fc='blue')#, label=r"95% RV interval")
+            ax.fill_between(x_fit, 10**(y_fit+d_mean), 10**(y_fit-d_mean), alpha=.20, fc='red')
 
-            ax.grid(True, which='both')
-            ax.set_xlabel("Inter-epoch", size=15)
-            ax.set_ylabel("$\log_{10}$ Divergences", size=15)
+
+            param_string = f"Slope: {params[0]:1.3e}, y-inter: {params[1]:1.3e}" if params is not None else ""
+
+            ax.grid(True, which='both', axis='both')
+            ax.set_xlabel("Inter-epoch", size=17.5)
+            ax.set_ylabel("$D_{SKL}$", size=17.5)
             ax.tick_params(axis='both', length=9, labelsize=12.5)
-            ax.legend(loc='best', fontsize=17.5)
-            ax.set_title(f"Model: {model_name}, Lat_dim: {lat_dim}, Layer: {col},\n {param_string}", size=20)
+            ax.yaxis.set_minor_formatter(FormatStrFormatter("%.1f"))
+            #ax.legend(loc='best', fontsize=17.5)
+            ax.set_title(f"Model: {model_name.replace('_', ' ').capitalize()}, Lat Dim: {lat_dim}, Layer: {col.replace('_', ' ').capitalize()},\n {param_string}", size=20)
+            ax.set_yscale('log')
 
             fig.tight_layout()
-            fig.savefig(f"{divs_folder}\\div_plot_linear_{col}.png")
+            fig.savefig(os.path.join(divs_folder, f"div_plot_linear_{col}.png"))
             plt.close(fig)
-            del fig, ax, datum
+            del fig, ax, log10_datum, datum
