@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from KDEpy import FFTKDE
 import scipy.integrate as integrate
+import scipy.signal as signal
 import pickle as pkl
 
 def walk_h5(file_handle, space="", num_spaces=2):
@@ -56,7 +57,7 @@ def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ'):
         
         layer = np.array([ii for ii in layer])
         overshoot = .01*np.ptp(layer)
-        layer_support = np.linspace(layer.min()-overshoot, layer.max()+overshoot, 10001)
+        layer_support = np.linspace(layer.min()-overshoot, layer.max()+overshoot, 5001)
         layer_pdfs = [None]*layer.shape[0]
         layer_bandwidths = [None]*layer.shape[0]
 

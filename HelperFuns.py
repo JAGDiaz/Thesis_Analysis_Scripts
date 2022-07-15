@@ -109,7 +109,7 @@ def plot_2D(y_pred, y_true, hyp_params, epoch, save_path, loss_comps, val_loss):
     ax[8].legend(loc="upper right")
 
     fig.suptitle(
-        f"Epoch: {epoch}/{hyp_params['max_epoch']}, Learn Rate: " + 
+        f"Epoch: {epoch}/{hyp_params['max_epochs']}, Learn Rate: " + 
         f"{hyp_params['lr']:.5f}, Val. Loss: {val_loss[-1]:.3f},\n" +
         f"model: {hyp_params['experiment']}, latent dim: {hyp_params['latent_dim']}", size=15)
 
@@ -224,7 +224,7 @@ def plot_3d_latent(y_pred, y_true, hyp_params, epoch, save_path, loss_comps, val
     ax.legend(loc="upper right")
 
     fig.suptitle(
-        f"Epoch: {epoch}/{hyp_params['max_epoch']}, Learn Rate: " + 
+        f"Epoch: {epoch}/{hyp_params['max_epochs']}, Learn Rate: " + 
         f"{hyp_params['lr']:.5f}, Val. Loss: {val_loss[-1]:.3f},\n" +
         f"model: {hyp_params['experiment']}, latent dim: {hyp_params['latent_dim']}", size=15)
 

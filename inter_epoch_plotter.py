@@ -63,7 +63,7 @@ def local_fit(model, epics, data, ax, color, model_name, column_name, lift_dim, 
     except:
         print(f"Fit failure for {model_name}, {column_name}, {lift_dim}, {label}.")
         #ax.plot([0], [0], '--', lw=2.5, color=color, label=label+" FF")
-        return None
+        return [None]*6
 
 examples_folder = os.path.join(os.getcwd(), "examples")
 
@@ -123,9 +123,10 @@ for model, model_name in zip(model_folders, models):
             params, x_fit, y_fit, d_mean, y_l, y_u = local_fit(model_dict['linear'], inter_epoch, log10_datum, ax, 'red', model_name, 
                                                                col, lat_dim, eqn_dict['linear'])
 
-            ax.plot(x_fit, 10**y_fit, '--', color='red')
-            ax.fill_between(x_fit, 10**y_u, 10**y_l, alpha=.20, fc='blue')#, label=r"95% RV interval")
-            ax.fill_between(x_fit, 10**(y_fit+d_mean), 10**(y_fit-d_mean), alpha=.20, fc='red')
+            if params is not None:
+                ax.plot(x_fit, 10**y_fit, '--', color='red')
+                ax.fill_between(x_fit, 10**y_u, 10**y_l, alpha=.20, fc='blue')#, label=r"95% RV interval")
+                ax.fill_between(x_fit, 10**(y_fit+d_mean), 10**(y_fit-d_mean), alpha=.20, fc='red')
 
 
             param_string = f"Slope: {params[0]:1.3e}, y-inter: {params[1]:1.3e}" if params is not None else ""

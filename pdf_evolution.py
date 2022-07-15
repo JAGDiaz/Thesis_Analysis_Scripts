@@ -6,6 +6,7 @@ import pandas as pd
 import pickle as pkl
 import matplotlib.pyplot as plt
 import matplotlib.animation as anime
+from scipy.signal import savgol_filter
 
 def printProgressBar(value,label,maximum):
     n_bar = 40 #size of progress bar
@@ -37,15 +38,20 @@ for model, model_name in zip(model_folders, models):
 
         model_weight_folder = os.path.join(trained_folder, dim_run)
         
-        pdf_dict = pkl.load(open(os.path.join(model_weight_folder, "pdf_dict.pkl"), "rb"))
-
+        try:
+            pdf_dict = pkl.load(open(os.path.join(model_weight_folder, "pdf_dict.pkl"), "rb"))
+        except Exception as e:
+            print(e)
+            continue
+        
         for layer in pdf_dict:
             gif_path = os.path.join(model_weight_folder, f"pdf_{layer}.gif")
             
-            if os.path.exists(gif_path):
-                continue
+            #if os.path.exists(gif_path):
+            #    continue
 
             y, x = pdf_dict[layer]
+            y = savgol_filter(y, 255, 5, axis=1)
 
             meta = dict(title=f"pdf evolution of {layer}", artist="Matplotlib")
             writer = anime.FFMpegWriter(fps=20, metadata=meta)

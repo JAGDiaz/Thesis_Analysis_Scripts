@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.signal import savgol_filter
+plt.rcParams['text.usetex'] = True
 
 
 examples_folder = os.path.join(os.getcwd(), "examples")
@@ -22,7 +23,7 @@ for model_folder, model_name in zip(model_folders, models):
 
     lat_dims = []
 
-    fig, (ax1, ax2) = plt.subplots(2, figsize=(15,10), sharex='col')
+    fig, ax2 = plt.subplots(figsize=(10,7))#, sharex='col')
 
     for color, dim_run, dim_run_folder in zip(colors, individual_runs, individual_runs_folder):
 
@@ -40,25 +41,25 @@ for model_folder, model_name in zip(model_folders, models):
 
         loss_data = data_frame[data_frame.columns[0]].values
 
-        ax1.plot(epoch, loss_data, '-', label=lat_dim)
+        # ax1.plot(epoch, loss_data, '-', label=lat_dim)
         ax2.plot(epoch, savgol_filter(loss_data, 31, 5), '-', label=lat_dim)
 
 
     #ax1.set_yscale('log')
-    ax1.grid(True, which='both')
-    ax1.set_ylabel(r"$\log_{10}$ Loss", size=17.5)
-    ax1.tick_params(axis='y', labelsize=12.5, length=9)
-    ax1.tick_params(axis='x', length=0)
-    ax1.legend(loc='best', fontsize=10, ncol=5)        
+    # ax1.grid(True, which='both')
+    # ax1.set_ylabel(r"$\log_{10}$ Loss", size=17.5)
+    # ax1.tick_params(axis='y', labelsize=12.5, length=9)
+    # ax1.tick_params(axis='x', length=0)
+    # ax1.legend(loc='best', fontsize=10, ncol=5)        
 
-    #ax2.set_yscale('log')
+    # ax2.set_yscale('log')
     ax2.grid(True, which='both')
     ax2.set_xlabel("Epoch", size=17.5)
     ax2.set_ylabel(r"$\log_{10}$ Loss", size=17.5)
     ax2.tick_params(axis='both', labelsize=12.5, length=9)
     ax2.legend(loc='best', fontsize=10, ncol=5)
 
-    fig.suptitle(f"Model: {model_name}", size=22.5)
+    fig.suptitle(f"Model: {model_name.replace('_', ' ').capitalize()}", size=25)
 
 
     fig.tight_layout()

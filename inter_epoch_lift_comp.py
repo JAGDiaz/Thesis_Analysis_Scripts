@@ -109,7 +109,7 @@ for model_folder, model_name in zip(model_folders, models):
         inter_epoch = inter_epoch[cut_off:]
 
         if figures_and_axes is None:
-            figures_and_axes = [(_, *plt.subplots(figsize=(10,7))) for _ in data_frame.columns]
+            figures_and_axes = [(_, *plt.subplots(figsize=(10,5))) for _ in data_frame.columns]
 
         if columns_dict is None:
             columns_dict = {column_name: [] for column_name in data_frame.columns}
@@ -139,7 +139,7 @@ for model_folder, model_name in zip(model_folders, models):
     ax.set_xlabel("Lifting Dimension", size=15)
     ax.set_ylabel("Average slope of linear fit of $\\log_{10}$ Divergences", size=15)
     ax.tick_params(axis='both', length=9, labelsize=12.5)        
-    ax.set_title(f"Model: {model_name}", size=20)
+    ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}", size=25)
 
     fig.tight_layout()
     fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit.png"))
@@ -152,14 +152,14 @@ for model_folder, model_name in zip(model_folders, models):
     for column_name in slope_frame.columns:
         datum = slope_frame[column_name]
 
-        fig, ax = plt.subplots(figsize=(10,7))
+        fig, ax = plt.subplots(figsize=(10,5))
         ax.grid(True, which='both')
-        ax.bar(lat_dims, datum, bottom=0)
+        ax.bar(lat_dims, datum, bottom=0, color=colors)
         ax.ticklabel_format(axis='y', style='sci', scilimits=(-1,1))
         ax.set_xlabel("Lifting Dimension", size=15)
         ax.set_ylabel("Slope of linear fit of $\\log_{10}$ Divergences", size=15)
         ax.tick_params(axis='both', length=9, labelsize=12.5)        
-        ax.set_title(f"Model: {model_name}, Layer: {column_name}", size=20)
+        ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}, Layer: {column_name.replace('_',' ').capitalize()}", size=25)
 
         fig.tight_layout()
         fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit_{column_name}.png"))
@@ -177,7 +177,7 @@ for model_folder, model_name in zip(model_folders, models):
         ax.set_ylabel("$\log_{10}$ Divergences", size=15)
         ax.tick_params(axis='both', length=9, labelsize=12.5)
         # ax.legend(loc='best', fontsize=10, ncol=5)
-        ax.set_title(f"Model: {model_name}, Layer: {column_name}", size=20)
+        ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}, Layer: {column_name.replace('_',' ').capitalize()}", size=25)
 
         divider = make_axes_locatable(ax)
         cax = divider.append_axes('right', size='5%', pad=0.1)

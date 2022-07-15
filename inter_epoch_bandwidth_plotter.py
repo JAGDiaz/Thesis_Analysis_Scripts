@@ -22,7 +22,7 @@ for model_folder, model_name in zip(model_folders, models):
     average_band_dict = dict()
     std_dev_band_dict = dict()
 
-    fug, ux = plt.subplots(2, figsize=(15,10))
+    fug, ux = plt.subplots(figsize=(10,7))
 
     for dim_run, dim_run_folder in zip(individual_runs, individual_runs_folder):
 
@@ -44,24 +44,24 @@ for model_folder, model_name in zip(model_folders, models):
 
         inter_epoch = band_frame.index.values
 
-        ux[0].plot(inter_epoch, average_band_dict[lat_dim], label=lat_dim)
-        ux[1].plot(inter_epoch, savgol_filter(average_band_dict[lat_dim], 31, 5), label=lat_dim)
+        #ux[0].plot(inter_epoch, average_band_dict[lat_dim], label=lat_dim)
+        ux.plot(inter_epoch, savgol_filter(average_band_dict[lat_dim], 31, 5), label=lat_dim)
 
-        fig, (ax1, ax2) = plt.subplots(2, figsize=(15,10), sharex='col')
+        fig, ax2 = plt.subplots(figsize=(10, 7))
 
         for column in band_frame.columns:
             data = band_frame[column].values
 
-            ax1.plot(inter_epoch, data, '-', label=column)
+            # ax1.plot(inter_epoch, data, '-', label=column)
             ax2.plot(inter_epoch, savgol_filter(data, 31, 5), '-', label=column)
 
-        ax1.set_yscale('log')
-        ax1.grid(True, which='both')
+        # ax1.set_yscale('log')
+        # ax1.grid(True, which='both')
         # ax1.set_xlabel("Inter Epoch", size=20)
-        ax1.set_ylabel("Bandwidth", size=17.5)
-        ax1.tick_params(axis='y', labelsize=12.5, length=9)
-        ax1.tick_params(axis='x', length=0)
-        ax1.legend(loc='best', fontsize=10, ncol=5)        
+        # ax1.set_ylabel("Bandwidth", size=17.5)
+        # ax1.tick_params(axis='y', labelsize=12.5, length=9)
+        # ax1.tick_params(axis='x', length=0)
+        # ax1.legend(loc='best', fontsize=10, ncol=5)        
 
         ax2.set_yscale('log')
         ax2.grid(True, which='both')
@@ -78,16 +78,22 @@ for model_folder, model_name in zip(model_folders, models):
 
         plt.close(fig)
     
-    for _ in ux:
-        _.grid(True, which='both')
-        _.tick_params(axis='y', labelsize=12.5, length=9)
-        _.set_ylabel("Average Bandwidth", size=17.5)
-        _.set_yscale('log')
-        _.legend(loc='best', fontsize=10, ncol=5)
+    # for _ in ux:
+        # _.grid(True, which='both')
+        # _.tick_params(axis='y', labelsize=12.5, length=9)
+        # _.set_ylabel("Average Bandwidth", size=17.5)
+        # _.set_yscale('log')
+        # _.legend(loc='best', fontsize=10, ncol=5)
 
-    ux[0].set_title(f"Model: {model_name}", size=22.5)
-    ux[0].tick_params(axis='x', length=0, labelsize=0)
-    ux[1].set_xlabel("Inter Epoch", size=17.5)
+    ux.grid(True, which='both')
+    ux.tick_params(axis='y', labelsize=12.5, length=9)
+    ux.set_ylabel("Average Bandwidth", size=17.5)
+    ux.set_yscale('log')
+    ux.legend(loc='best', fontsize=10, ncol=5)
+
+    # ux[0].set_title(f"Model: {model_name.replace('_',' ').capitalize()}", size=22.5)
+    # ux[0].tick_params(axis='x', length=0, labelsize=0)
+    ux.set_xlabel("Inter Epoch", size=17.5)
 
 
     fug.tight_layout()
