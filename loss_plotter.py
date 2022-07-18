@@ -3,7 +3,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.signal import savgol_filter
-plt.rcParams['text.usetex'] = True
+styledict = {'axes.grid':True,
+             'axes.grid.axis': 'both',
+             'axes.grid.which': 'major',
+             'xtick.labelsize':12.5,
+             'xtick.major.size':9,
+             'xtick.major.width':1,
+             'ytick.labelsize':12.5,
+             'ytick.major.size':9,
+             'ytick.major.width':1,
+             'legend.framealpha':1,
+             'legend.fontsize':12.5,
+             'axes.labelsize':17.5,
+             'axes.titlesize':25,
+             'axes.linewidth':2,
+             'figure.figsize':(10,5),
+             'figure.titlesize':25,
+             'savefig.format':'png',
+             'text.usetex':True}
+plt.rcParams.update(**styledict)
 
 
 examples_folder = os.path.join(os.getcwd(), "examples")
@@ -23,7 +41,7 @@ for model_folder, model_name in zip(model_folders, models):
 
     lat_dims = []
 
-    fig, ax2 = plt.subplots(figsize=(10,7))#, sharex='col')
+    fig, ax2 = plt.subplots()#, sharex='col')
 
     for color, dim_run, dim_run_folder in zip(colors, individual_runs, individual_runs_folder):
 
@@ -54,9 +72,9 @@ for model_folder, model_name in zip(model_folders, models):
 
     # ax2.set_yscale('log')
     ax2.grid(True, which='both')
-    ax2.set_xlabel("Epoch", size=17.5)
-    ax2.set_ylabel(r"$\log_{10}$ Loss", size=17.5)
-    ax2.tick_params(axis='both', labelsize=12.5, length=9)
+    ax2.set_xlabel("Epoch")
+    ax2.set_ylabel(r"$\log_{10}$ Loss")
+    ax2.tick_params(axis='both')
     ax2.legend(loc='best', fontsize=10, ncol=5)
 
     fig.suptitle(f"Model: {model_name.replace('_', ' ').capitalize()}", size=25)

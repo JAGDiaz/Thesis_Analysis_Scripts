@@ -3,6 +3,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.signal import savgol_filter
+styledict = {'axes.grid':True,
+             'axes.grid.axis': 'both',
+             'axes.grid.which': 'major',
+             'xtick.labelsize':12.5,
+             'xtick.major.size':9,
+             'xtick.major.width':1,
+             'ytick.labelsize':12.5,
+             'ytick.major.size':9,
+             'ytick.major.width':1,
+             'legend.framealpha':1,
+             'legend.fontsize':12.5,
+             'axes.labelsize':17.5,
+             'axes.titlesize':25,
+             'axes.linewidth':2,
+             'figure.figsize':(10,5),
+             'figure.titlesize':25,
+             'savefig.format':'png'}
+plt.rcParams.update(**styledict)
 
 
 
@@ -22,7 +40,7 @@ for model_folder, model_name in zip(model_folders, models):
     average_band_dict = dict()
     std_dev_band_dict = dict()
 
-    fug, ux = plt.subplots(figsize=(10,7))
+    fug, ux = plt.subplots()
 
     for dim_run, dim_run_folder in zip(individual_runs, individual_runs_folder):
 
@@ -47,7 +65,7 @@ for model_folder, model_name in zip(model_folders, models):
         #ux[0].plot(inter_epoch, average_band_dict[lat_dim], label=lat_dim)
         ux.plot(inter_epoch, savgol_filter(average_band_dict[lat_dim], 31, 5), label=lat_dim)
 
-        fig, ax2 = plt.subplots(figsize=(10, 7))
+        fig, ax2 = plt.subplots()
 
         for column in band_frame.columns:
             data = band_frame[column].values
@@ -55,26 +73,18 @@ for model_folder, model_name in zip(model_folders, models):
             # ax1.plot(inter_epoch, data, '-', label=column)
             ax2.plot(inter_epoch, savgol_filter(data, 31, 5), '-', label=column)
 
-        # ax1.set_yscale('log')
-        # ax1.grid(True, which='both')
-        # ax1.set_xlabel("Inter Epoch", size=20)
-        # ax1.set_ylabel("Bandwidth", size=17.5)
-        # ax1.tick_params(axis='y', labelsize=12.5, length=9)
-        # ax1.tick_params(axis='x', length=0)
-        # ax1.legend(loc='best', fontsize=10, ncol=5)        
-
         ax2.set_yscale('log')
         ax2.grid(True, which='both')
-        ax2.set_xlabel("Inter Epoch", size=17.5)
-        ax2.set_ylabel("Bandwidth", size=17.5)
-        ax2.tick_params(axis='both', labelsize=12.5, length=9)
+        ax2.set_xlabel("Inter Epoch")
+        ax2.set_ylabel("Bandwidth")
+        ax2.tick_params(axis='both')
         ax2.legend(loc='best', fontsize=10, ncol=5)
 
-        fig.suptitle(f"Model: {model_name}, Latent Dim: {lat_dim}, Time: {run_time}", size=22.5)
+        fig.suptitle(f"Model: {model_name.replace('_',' ').capitalize()}, Latent Dim: {lat_dim}", size=22.5)
 
 
         fig.tight_layout()
-        fig.savefig(os.path.join(examples_folder, model_name, f"bandwidth_plots_{lat_dim}_{run_time}.png"))
+        fig.savefig(os.path.join(examples_folder, model_name, f"bandwidth_plots_{lat_dim}.png"))
 
         plt.close(fig)
     
@@ -86,14 +96,14 @@ for model_folder, model_name in zip(model_folders, models):
         # _.legend(loc='best', fontsize=10, ncol=5)
 
     ux.grid(True, which='both')
-    ux.tick_params(axis='y', labelsize=12.5, length=9)
-    ux.set_ylabel("Average Bandwidth", size=17.5)
+    ux.tick_params(axis='y')
+    ux.set_ylabel("Average Bandwidth")
     ux.set_yscale('log')
     ux.legend(loc='best', fontsize=10, ncol=5)
 
     # ux[0].set_title(f"Model: {model_name.replace('_',' ').capitalize()}", size=22.5)
     # ux[0].tick_params(axis='x', length=0, labelsize=0)
-    ux.set_xlabel("Inter Epoch", size=17.5)
+    ux.set_xlabel("Inter Epoch")
 
 
     fug.tight_layout()

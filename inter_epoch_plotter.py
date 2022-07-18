@@ -5,7 +5,25 @@ import pandas as pd
 from scipy.optimize import curve_fit
 from scipy.stats import t
 from matplotlib.ticker import FormatStrFormatter
-plt.rcParams["text.usetex"] = True
+styledict = {'axes.grid':True,
+             'axes.grid.axis': 'both',
+             'axes.grid.which': 'major',
+             'xtick.labelsize':12.5,
+             'xtick.major.size':9,
+             'xtick.major.width':1,
+             'ytick.labelsize':12.5,
+             'ytick.major.size':9,
+             'ytick.major.width':1,
+             'legend.framealpha':1,
+             'legend.fontsize':12.5,
+             'axes.labelsize':17.5,
+             'axes.titlesize':25,
+             'axes.linewidth':2,
+             'figure.figsize':(10,5),
+             'figure.titlesize':25,
+             'savefig.format':'png',
+             'text.usetex':True}
+plt.rcParams.update(**styledict)
 
 def nonlinear_model(x,a,b,c):
     return -a*(x*x)/(x*x + b) + c
@@ -117,7 +135,7 @@ for model, model_name in zip(model_folders, models):
             datum = data_frame[col].values[cut_off:]
             log10_datum = np.log10(datum)
 
-            fig, ax = plt.subplots(figsize=(10, 7))
+            fig, ax = plt.subplots()
             
             ax.plot(inter_epoch, datum, '.k')
             params, x_fit, y_fit, d_mean, y_l, y_u = local_fit(model_dict['linear'], inter_epoch, log10_datum, ax, 'red', model_name, 
@@ -132,9 +150,9 @@ for model, model_name in zip(model_folders, models):
             param_string = f"Slope: {params[0]:1.3e}, y-inter: {params[1]:1.3e}" if params is not None else ""
 
             ax.grid(True, which='both', axis='both')
-            ax.set_xlabel("Inter-epoch", size=17.5)
-            ax.set_ylabel("$D_{SKL}$", size=17.5)
-            ax.tick_params(axis='both', length=9, labelsize=12.5)
+            ax.set_xlabel("Inter-epoch")
+            ax.set_ylabel("$D_{SKL}$")
+            ax.tick_params(axis='both')
             ax.yaxis.set_minor_formatter(FormatStrFormatter("%.1f"))
             #ax.legend(loc='best', fontsize=17.5)
             ax.set_title(f"Model: {model_name.replace('_', ' ').capitalize()}, Lat Dim: {lat_dim}, Layer: {col.replace('_', ' ').capitalize()},\n {param_string}", size=20)

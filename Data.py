@@ -108,7 +108,7 @@ def dyn_sys_VdP(t, rhs, mu=1.5):
     dy/dt = mu*(1 - x^2)*y - x
     """
     lhs = np.zeros(2)
-    lhs[0] = rhs[0]
+    lhs[0] = rhs[1]
     lhs[1] = mu*(1 - rhs[0]**2)*rhs[1] - rhs[0]
     return lhs
 

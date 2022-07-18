@@ -6,6 +6,26 @@ import pandas as pd
 from scipy.optimize import curve_fit
 from scipy.stats import t
 
+styledict = {'axes.grid':True,
+             'axes.grid.axis': 'both',
+             'axes.grid.which': 'major',
+             'xtick.labelsize':12.5,
+             'xtick.major.size':9,
+             'xtick.major.width':1,
+             'ytick.labelsize':12.5,
+             'ytick.major.size':9,
+             'ytick.major.width':1,
+             'legend.framealpha':1,
+             'legend.fontsize':12.5,
+             'axes.labelsize':17.5,
+             'axes.titlesize':25,
+             'axes.linewidth':2,
+             'figure.figsize':(10,5),
+             'figure.titlesize':25,
+             'savefig.format':'png',
+             'text.usetex':True}
+plt.rcParams.update(**styledict)
+
 def linear_model(x,a,b):
     return a*x+b
 
@@ -130,15 +150,15 @@ for model_folder, model_name in zip(model_folders, models):
     average_slope_by_dim = slope_data.mean(axis=1)
     variance_by_dim = np.sqrt(slope_data.var(axis=1))
 
-    fig, ax = plt.subplots(figsize=(10,7))
+    fig, ax = plt.subplots()
 
     ax.grid(True, which='both')
     ax.bar(lat_dims, average_slope_by_dim, bottom=0, color='tab:red', yerr=variance_by_dim, error_kw={'capthick': 50})
     # ax.bar(lat_dims, average_slope_by_dim+variance_by_dim, bottom=average_slope_by_dim-variance_by_dim, color='tab:blue', alpha=.6)
     ax.ticklabel_format(axis='y', style='sci', scilimits=(-1,1))
-    ax.set_xlabel("Lifting Dimension", size=15)
-    ax.set_ylabel("Average slope of linear fit of $\\log_{10}$ Divergences", size=15)
-    ax.tick_params(axis='both', length=9, labelsize=12.5)        
+    ax.set_xlabel("Lifting Dimension")
+    ax.set_ylabel("Average slope")
+    ax.tick_params(axis='both')        
     ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}", size=25)
 
     fig.tight_layout()
@@ -156,9 +176,11 @@ for model_folder, model_name in zip(model_folders, models):
         ax.grid(True, which='both')
         ax.bar(lat_dims, datum, bottom=0, color=colors)
         ax.ticklabel_format(axis='y', style='sci', scilimits=(-1,1))
-        ax.set_xlabel("Lifting Dimension", size=15)
-        ax.set_ylabel("Slope of linear fit of $\\log_{10}$ Divergences", size=15)
-        ax.tick_params(axis='both', length=9, labelsize=12.5)        
+        ax.set_xlabel("Lifting Dimension")
+        ax.set_ylabel("Slope of linear fit of $\\log_{10}$ Divergences")
+        over = .1*np.ptp(slope_data)
+        ax.set_ylim(slope_data.min()-over, slope_data.max()+over)
+        ax.tick_params(axis='both')        
         ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}, Layer: {column_name.replace('_',' ').capitalize()}", size=25)
 
         fig.tight_layout()
