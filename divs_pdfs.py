@@ -4,13 +4,11 @@ import sys
 import h5py 
 import numpy as np
 import pandas as pd
-from KDEpy import FFTKDE
+from KDEpy import TreeKDE, NaiveKDE, FFTKDE
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import pickle as pkl
-from numba import vectorize
-import warnings
-warnings.filterwarnings("ignore")
+from numba import vectorize, njit
 
 styledict = {'axes.grid':True,
              'axes.grid.axis': 'both',
@@ -44,8 +42,14 @@ def continuous_KLD(p, q, x, tol=1e-12):
     integrand = np.where(p > tol, p * np.log(p / q), 0)
     return integrate.simpson(integrand, x)
 
+def discrete_KLD(p, q, dx, tol=1e-12):
+    return np.sum(np.where(p > tol, p * np.log(p / q), 0))*dx
+
 def sym_KLD(p, q, x, vep=1e-12):
     return .5*(continuous_KLD(p, q, x, vep) + continuous_KLD(q, p, x, vep))
+
+def dis_sym_KLD(p, q, dx, vep=1e-12):
+    return .5*(discrete_KLD(p, q, dx, vep) + discrete_KLD(q, p, dx, vep))
 
 @vectorize
 def epa_kernel(x):
@@ -54,23 +58,24 @@ def epa_kernel(x):
     else:
         return 0
 
-def density_maker(x_vals, h, kernel=epa_kernel):
+@njit
+def epa_density(x, x_vals, h):
     n = x_vals.size
-    def density(x):
-        X, Xi = np.meshgrid(x, x_vals)
-        values = kernel((X - Xi)/h)
-        
-        return np.sum(values, axis=0)/(n*h)
-    return density
+    running_sum = np.zeros(x.size)
+    for xi in x_vals:
+        running_sum += epa_kernel((x - xi)/h)
+    return running_sum/(n*h)
 
-def get_diveregences(data_set, supports):
+def get_diveregences(data_set, supports, label='Enc divs'):
 
     divs = np.zeros(shape=(data_set.shape[0], data_set.shape[1]-1))
     
     for ii, (layer, support) in enumerate(zip(data_set, supports)):
 
         for jj in range(layer.shape[0]-1):
-            divs[ii, jj] = sym_KLD(layer[jj], layer[jj+1], support)
+            divs[ii, jj] = dis_sym_KLD(layer[jj], layer[jj+1], support[1] - support[0])
+        
+        printProgressBar(ii, label, len(data_set))
 
     return divs
 
@@ -86,7 +91,7 @@ def printProgressBar(value,label,maximum):
     if value == maximum:
         print()
 
-def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ'):
+def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ', label='Enc pdfs'):
 
     pdfs = [None]*weight_diffs.shape[1]
     supports = [None]*weight_diffs.shape[1]
@@ -97,7 +102,7 @@ def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ'):
     for ii, layer in enumerate(weight_diffs.T):
         
         layer = np.array([ii for ii in layer])
-        full_overshoot = .05*np.ptp(layer)
+        full_overshoot = .1*np.ptp(layer)
         full_support = np.linspace(layer.min()-full_overshoot, layer.max()+full_overshoot, 5001)
         layer_pdfs = [None]*layer.shape[0]
         layer_bandwidths = [None]*layer.shape[0]
@@ -105,24 +110,31 @@ def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ'):
 
         for jj, data in enumerate(layer):
             
-            #layer_overshoot = .01*np.ptp(data)
-            #layer_support = np.linspace(data.min()-layer_overshoot, data.max()+layer_overshoot, full_support.size)
             estimator = FFTKDE(kernel=kde_kernel, bw=kde_bw).fit(data)
             layer_bandwidths[jj] = estimator.bw
-            layer_support, pdf = estimator.evaluate(1001)
-            layer_func = density_maker(layer_support, estimator.bw)
-            #simpson_area = integrate.simpson(pdf, layer_support)
-            layer_simps_area[jj] = integrate.quadrature(layer_func, *full_support[[0,-1]])[0]
+            pdf = estimator.evaluate(full_support)
+            # pdf = epa_density(full_support, data, estimator.bw) 
+            #plt.plot(full_support, epa_density(full_support, data, estimator.bw))
+            #plt.show()
 
-
-            layer_pdfs[jj] = layer_func(full_support)
+            #simpson_area = integrate.quadrature(epa_density, *full_support[[0,1]], args=(data, estimator.bw),
+            #                                    tol=1e-3)
+            simpson_area = integrate.simpson(pdf, full_support)
+            # print(simpson_area, end=" ")
+            
+            layer_simps_area[jj] = simpson_area
+            layer_pdfs[jj] = pdf
         
         pdfs[ii] = layer_pdfs
         supports[ii] = full_support
         bands[ii] = layer_bandwidths
         simps_areas[ii] = layer_simps_area
 
+        printProgressBar(ii, label, weight_diffs.shape[1])
+
     return np.array(pdfs), np.array(supports), np.array(bands), np.array(simps_areas)
+
+bw = .1
 
 examples_folder = os.path.join(os.getcwd(), "examples")
 
@@ -130,15 +142,16 @@ models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)
 
 model_folders = [os.path.join(examples_folder, model) for model in models]
 
-fug, uxes = plt.subplots(1,len(model_folders), figsize=(5*len(model_folders),5), sharey='row')
+# fug, uxes = plt.subplots(1,len(model_folders), figsize=(5*len(model_folders),5), sharey='row')
 
-for model, model_name, ux in zip(model_folders, models, uxes):
-    print(f"Generating data for {model_name}.")
+for model, model_name in zip(model_folders, models):
+    print(f"Getting data from {model_name}.")
     trained_folder = os.path.join(model, "trained_models")
 
     disties = []
 
     for dim_run in os.listdir(trained_folder):
+        print(dim_run)
         
         fold_components = dim_run.split('_')
         lat_dim = fold_components[-2]
@@ -166,9 +179,9 @@ for model, model_name, ux in zip(model_folders, models, uxes):
             dec_labels.insert(0, dec_labels.pop(-2))
             dec_weights[ii] = [np.concatenate([decoder_layers[key]['kernel:0'][:].flatten(), decoder_layers[key]['bias:0'][:].flatten()]) for key in dec_labels]
             h5_file.close()
+            printProgressBar(ii, "Weight Extraction", len(weight_files))
 
         del h5_file
-        printProgressBar(0, dim_run, 3)
 
         enc_weights = np.array(enc_weights, dtype=object)
         dec_weights = np.array(dec_weights, dtype=object)
@@ -185,23 +198,25 @@ for model, model_name, ux in zip(model_folders, models, uxes):
         del full_weight_dict
 
 
-        enc_pdfs, enc_supports, enc_bws, enc_simps = pdf_creator(enc_weights_diff)
-        dec_pdfs, dec_supports, dec_bws, dec_simps = pdf_creator(dec_weights_diff)
+        enc_pdfs, enc_supports, enc_bws, enc_simps = pdf_creator(enc_weights_diff, kde_bw=bw)
+        dec_pdfs, dec_supports, dec_bws, dec_simps = pdf_creator(dec_weights_diff, kde_bw=bw, label='Dec pdfs')
         disties.append([enc_simps, dec_simps])
-        printProgressBar(1, dim_run, 3)
 
-        fig, axes = plt.subplots(1,2, sharey='row')
-        axes[0].hist(enc_simps.flatten(), bins='auto', density=True)
-        axes[1].hist(dec_simps.flatten(), bins='auto', density=True)
-        axes[0].set_title("Encoder")
-        axes[1].set_title("Decoder") 
-        axes[0].set_xlabel("Weights")
-        axes[1].set_xlabel("Weights")  
-        axes[0].set_ylabel("Density")
-        fig.suptitle(f"Model: {model_name.replace('_',' ').capitalize()}, Lat Dim: {lat_dim}")
-        fig.tight_layout()
-        fig.savefig(os.path.join(model, f"area_deviation_{lat_dim}.png"))
-        plt.close(fig)
+        # fig, axes = plt.subplots(1,2, sharey='row')
+        # ms, _, _ = axes[0].hist(enc_simps.flatten(), bins='auto', density=True)
+        # ns, _, _ = axes[1].hist(dec_simps.flatten(), bins='auto', density=True)
+        # axes[0].set_xlim(enc_simps.min()-.2*np.ptp(enc_simps), enc_simps.max()+.2*np.ptp(enc_simps))
+        # axes[1].set_xlim(dec_simps.min()-.2*np.ptp(dec_simps), dec_simps.max()+.2*np.ptp(dec_simps))
+        # axes[0].set_ylim(0, 1.1*np.concatenate([ms,ns]).max())
+        # axes[0].set_title("Encoder")
+        # axes[1].set_title("Decoder") 
+        # axes[0].set_xlabel("Areas")
+        # axes[1].set_xlabel("Areas")  
+        # axes[0].set_ylabel("Density")
+        # fig.suptitle(f"Model: {model_name.replace('_',' ').capitalize()}, Lat Dim: {lat_dim}")
+        # fig.tight_layout()
+        # fig.savefig(os.path.join(model, f"area_deviation_{lat_dim}.png"))
+        # plt.close(fig)
 
         full_weight_diff_dict = {**{lab:layer for lab, layer in zip(enc_labels, enc_weights_diff.T)}, 
                                  **{lab:layer for lab, layer in zip(dec_labels, dec_weights_diff.T)}}
@@ -213,7 +228,7 @@ for model, model_name, ux in zip(model_folders, models, uxes):
         pkl.dump(pdf_dict, open(os.path.join(model_weight_folder, "pdf_dict.pkl"),'wb'))
 
         enc_divergences = get_diveregences(enc_pdfs, enc_supports)
-        dec_divergences = get_diveregences(dec_pdfs, dec_supports)        
+        dec_divergences = get_diveregences(dec_pdfs, dec_supports, label='Dec divs')        
         del enc_supports, dec_supports, enc_pdfs, dec_pdfs
 
         all_divergences = np.concatenate([enc_divergences, dec_divergences], axis=0).T
@@ -227,29 +242,34 @@ for model, model_name, ux in zip(model_folders, models, uxes):
         data_frame = pd.DataFrame(data=all_bws, columns=column_labels, index=np.arange(all_bws.shape[0])+1)
         data_frame.to_csv(os.path.join(model_weight_folder, "bandwidth_results.csv"))
 
-        printProgressBar(2, dim_run, 3)
         del enc_divergences, dec_divergences, all_divergences
         del enc_bws, dec_bws, all_bws
         del data_frame
+        print()
     
     disties = np.array(disties)
 
-    fig, ax = plt.subplots()
+    pkl.dump(disties, open(os.path.join(model, f"all_integrated_areas_{bw:1.3e}.pkl"),'wb'))
 
-    ax.hist(disties.flatten(), bins='auto', density=True)
-    ax.set(xlabel="Weights", ylabel="Density", title=f"Area Deviation for {model_name.replace('_',' ').capitalize()}")
+
+    # fig, ax = plt.subplots()
+
+    # ax.hist(disties.flatten(), bins='auto', density=True)
+    # ax.set(xlabel="Areas", ylabel="Density", title=f"Area Deviation for {model_name.replace('_',' ').capitalize()}",
+           # xlim=(disties.min(), disties.max()))
     
-    fig.tight_layout()
-    fig.savefig(os.path.join(model, f"area_deviation.png"))
-    plt.close(fig)
+    # fig.tight_layout()
+    # fig.savefig(os.path.join(model, f"area_deviation.png"))
+    # plt.close(fig)
     
-    ux.hist(disties.flatten(), bins='auto', density=True, label=model_name.replace('_',' ').capitalize())
-    ux.set(xlabel="Integrated Area", xlim=(0,2), title=model_name.replace('_',' ').capitalize())
+    # ns, _, _ =ux.hist(disties.flatten(), bins='auto', density=True, label=model_name.replace('_',' ').capitalize())
+    # ux.set(xlabel="Areas", xlim=(disties.min(), disties.max()), title=model_name.replace('_',' ').capitalize(),
+           # ylim=(0,1.1*np.max(ns)))
     del disties
 
-uxes[0].set_ylabel("Density")
-uxes[-1].tick_params(axis='y', which='both', length=0)
+# uxes[0].set_ylabel("Density")
+# uxes[-1].tick_params(axis='y', which='both', length=0)
 
-fug.tight_layout()
-fug.savefig(os.path.join(examples_folder, "area_devs.png"))
-plt.close(fug)
+# fug.tight_layout()
+# fug.savefig(os.path.join(examples_folder, "area_devs.png"))
+# plt.close(fug)

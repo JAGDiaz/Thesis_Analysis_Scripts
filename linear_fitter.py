@@ -85,7 +85,7 @@ def local_fit(model, epics, data, ax, color, model_name, column_name, lift_dim, 
 
 examples_folder = os.path.join(os.getcwd(), "examples")
 
-models = os.listdir(examples_folder)
+models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)[1] == '']
 
 model_folders = [os.path.join(examples_folder, model) for model in models]
 

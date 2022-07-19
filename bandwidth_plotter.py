@@ -25,7 +25,7 @@ plt.rcParams.update(**styledict)
 
 
 examples_folder = os.path.join(os.getcwd(), "examples")
-models = os.listdir(examples_folder)
+models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)[1] == '']
 model_folders = [os.path.join(examples_folder, model, "trained_models") for model in models]
 
 cutoffs = {'duffing': 5, 'duffing_sd': 5, 'van_der_pol': 9}

@@ -141,6 +141,9 @@ for model_folder, model_name in zip(model_folders, models):
                                column_name, lat_dim, f"Lift Dim: {lat_dim}")
             columns_dict[column_name].append(params[0])
 
+    if len(lat_dims) == 0:
+        continue
+    
     lat_dims = np.array(lat_dims)
 
     slope_frame = pd.DataFrame(columns_dict, index=lat_dims)

@@ -22,7 +22,7 @@ def printProgressBar(value,label,maximum):
 
 examples_folder = os.path.join(os.getcwd(), "examples")
 
-models = os.listdir(examples_folder)
+models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)[1] == '']
 
 model_folders = [os.path.join(examples_folder, model) for model in models]
 
@@ -51,7 +51,7 @@ for model, model_name in zip(model_folders, models):
             #    continue
 
             y, x = pdf_dict[layer]
-            y = savgol_filter(y, 255, 5, axis=1)
+            # y = savgol_filter(y, 255, 5, axis=1)
 
             meta = dict(title=f"pdf evolution of {layer}", artist="Matplotlib")
             writer = anime.FFMpegWriter(fps=20, metadata=meta)
