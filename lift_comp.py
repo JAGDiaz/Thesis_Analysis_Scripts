@@ -70,7 +70,7 @@ def local_fit(model, epics, data, ax, color, model_name, column_name, lift_dim, 
         return None
 
 examples_folder = os.path.join(os.getcwd(), "examples")
-models = os.listdir(examples_folder)
+models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)[1] == '']
 model_folders = [os.path.join(examples_folder, model, "trained_models") for model in models]
 figures_and_axes = None
 
@@ -79,7 +79,6 @@ cutoffs = {'duffing': 5, 'duffing_sd': 5, 'van_der_pol': 9}
 
 for model_folder, model_name in zip(model_folders, models):
 
-    # [os.remove(os.path.join(examples_folder, model_name, file)) for file in os.listdir(os.path.join(examples_folder, model_name)) if file.endswith('.png')]
 
     individual_runs = os.listdir(model_folder)[:cutoffs[model_name]]
     individual_runs_folder = [os.path.join(model_folder, individual_run) for individual_run in individual_runs]
@@ -92,7 +91,7 @@ for model_folder, model_name in zip(model_folders, models):
 
     for color, dim_run, dim_run_folder in zip(colors, individual_runs, individual_runs_folder):
 
-        data_file = os.path.join(dim_run_folder, "divergence_results.csv")
+        data_file = os.path.join(dim_run_folder, "bandwidth_ISJ", "divergence_results.csv")
         # loss_file = os.path.join(dim_run_folder, "losses_by_epoch.csv")
         
         if not os.path.exists(data_file):
@@ -107,19 +106,6 @@ for model_folder, model_name in zip(model_folders, models):
 
         if os.path.exists(os.path.join(dim_run_folder, "loss_plot.png")):
             os.remove(os.path.join(dim_run_folder, "loss_plot.png"))
-
-            # loss_frame = pd.read_csv(loss_file, index_col=0)
-
-            # epoch = loss_frame.index.values
-            # losses = loss_frame[loss_frame.columns[0]]
-
-            # figure, axes = plt.subplots(figsize=(10,7))
-
-            # axes.plot(epoch, losses, '-k')
-
-            # figure.tight_layout()
-            # figure.savefig(os.path.join(dim_run_folder, "loss_plot.png"))
-            # plt.close(figure)
 
 
         lat_dims.append(lat_dim)
@@ -157,12 +143,11 @@ for model_folder, model_name in zip(model_folders, models):
 
     ax.grid(True, which='both')
     ax.bar(lat_dims, average_slope_by_dim, bottom=0, color='tab:red', yerr=variance_by_dim, error_kw={'capthick': 50})
-    # ax.bar(lat_dims, average_slope_by_dim+variance_by_dim, bottom=average_slope_by_dim-variance_by_dim, color='tab:blue', alpha=.6)
     ax.ticklabel_format(axis='y', style='sci', scilimits=(-1,1))
     ax.set_xlabel("Lifting Dimension")
     ax.set_ylabel("Average slope")
     ax.tick_params(axis='both')        
-    ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}", size=25)
+    #ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}", size=25)
 
     fig.tight_layout()
     fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit.png"))
@@ -184,7 +169,7 @@ for model_folder, model_name in zip(model_folders, models):
         over = .1*np.ptp(slope_data)
         ax.set_ylim(slope_data.min()-over, slope_data.max()+over)
         ax.tick_params(axis='both')        
-        ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}, Layer: {column_name.replace('_',' ').capitalize()}", size=25)
+        ax.set_title(f"Layer: {column_name.replace('_',' ').capitalize()}", size=25)
 
         fig.tight_layout()
         fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit_{column_name}.png"))
@@ -202,7 +187,7 @@ for model_folder, model_name in zip(model_folders, models):
         ax.set_ylabel("$\log_{10}$ Divergences", size=15)
         ax.tick_params(axis='both', length=9, labelsize=12.5)
         # ax.legend(loc='best', fontsize=10, ncol=5)
-        ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}, Layer: {column_name.replace('_',' ').capitalize()}", size=25)
+        ax.set_title(f"Layer: {column_name.replace('_',' ').capitalize()}", size=25)
 
         divider = make_axes_locatable(ax)
         cax = divider.append_axes('right', size='5%', pad=0.1)

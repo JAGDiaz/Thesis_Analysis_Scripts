@@ -44,7 +44,7 @@ for model_folder, model_name in zip(model_folders, models):
 
     for dim_run, dim_run_folder in zip(individual_runs, individual_runs_folder):
 
-        bandwidth_file = os.path.join(dim_run_folder, "bandwidth_results.csv")
+        bandwidth_file = os.path.join(dim_run_folder, "bandwidth_ISJ", "bandwidth_results.csv")
 
         if not os.path.exists(bandwidth_file):
             continue

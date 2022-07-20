@@ -32,7 +32,7 @@ tf.keras.backend.set_floatx('float64')  # !! Set precision for the entire model 
 
 examples_folder = os.path.join(os.getcwd(), "examples")
 
-models = os.listdir(examples_folder)
+models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)[1] == '']
 
 model_folders = [os.path.join(examples_folder, model) for model in models]
 
@@ -59,9 +59,9 @@ for model, model_name in zip(model_folders, models):
         lat_dim = fold_components[-2]
         run_time = fold_components[-1]
 
-        model_weight_folder = os.path.join(trained_folder, dim_run)
-        params_folder = os.path.join(model_weight_folder, "params")
-        file_to_use = [file for file in os.listdir(params_folder) if file.endswith('.pkl')][-1]
+        model_weight_folder = os.path.join(trained_folder, dim_run, "weights_by_epoch")
+        #params_folder = os.path.join(model_weight_folder, "params")
+        #file_to_use = [file for file in os.listdir(params_folder) if file.endswith('.pkl')][-1]
         #print(file_to_use)
         try:
             #hyp_params = pkl.load(open(os.path.join(params_folder, file_to_use), "rb"))

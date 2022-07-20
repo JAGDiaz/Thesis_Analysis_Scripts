@@ -134,7 +134,7 @@ def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ', label='Enc pdfs'):
 
     return np.array(pdfs), np.array(supports), np.array(bands), np.array(simps_areas)
 
-bw = .01
+bw = "ISJ"
 
 examples_folder = os.path.join(os.getcwd(), "examples")
 
@@ -142,13 +142,10 @@ models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)
 
 model_folders = [os.path.join(examples_folder, model) for model in models]
 
-# fug, uxes = plt.subplots(1,len(model_folders), figsize=(5*len(model_folders),5), sharey='row')
-
 for model, model_name in zip(model_folders, models):
     print(f"Getting data from {model_name}.")
     trained_folder = os.path.join(model, "trained_models")
 
-    disties = []
 
     for dim_run in os.listdir(trained_folder):
         print(dim_run)
@@ -159,8 +156,11 @@ for model, model_name in zip(model_folders, models):
 
         model_weight_folder = os.path.join(trained_folder, dim_run)
         weight_files = [os.path.join(model_weight_folder, "weights_by_epoch", file) for file in os.listdir(os.path.join(model_weight_folder, "weights_by_epoch")) if file.endswith('.h5')]
+        model_weight_folder = os.path.join(model_weight_folder, f"bandwidth_{bw}")
+        if not os.path.exists(model_weight_folder):
+            os.mkdir(model_weight_folder)
 
-        if len(weight_files) != 1000:# or os.path.exists(os.path.join(model_weight_folder, 'divergence_results.csv')):
+        if len(weight_files) != 1000 or os.path.exists(os.path.join(model_weight_folder, 'divergence_results.csv')):
             continue
 
         enc_weights = [None]*len(weight_files)
@@ -200,23 +200,8 @@ for model, model_name in zip(model_folders, models):
 
         enc_pdfs, enc_supports, enc_bws, enc_simps = pdf_creator(enc_weights_diff, kde_bw=bw)
         dec_pdfs, dec_supports, dec_bws, dec_simps = pdf_creator(dec_weights_diff, kde_bw=bw, label='Dec pdfs')
-        disties.append([enc_simps, dec_simps])
-
-        # fig, axes = plt.subplots(1,2, sharey='row')
-        # ms, _, _ = axes[0].hist(enc_simps.flatten(), bins='auto', density=True)
-        # ns, _, _ = axes[1].hist(dec_simps.flatten(), bins='auto', density=True)
-        # axes[0].set_xlim(enc_simps.min()-.2*np.ptp(enc_simps), enc_simps.max()+.2*np.ptp(enc_simps))
-        # axes[1].set_xlim(dec_simps.min()-.2*np.ptp(dec_simps), dec_simps.max()+.2*np.ptp(dec_simps))
-        # axes[0].set_ylim(0, 1.1*np.concatenate([ms,ns]).max())
-        # axes[0].set_title("Encoder")
-        # axes[1].set_title("Decoder") 
-        # axes[0].set_xlabel("Areas")
-        # axes[1].set_xlabel("Areas")  
-        # axes[0].set_ylabel("Density")
-        # fig.suptitle(f"Model: {model_name.replace('_',' ').capitalize()}, Lat Dim: {lat_dim}")
-        # fig.tight_layout()
-        # fig.savefig(os.path.join(model, f"area_deviation_{lat_dim}.png"))
-        # plt.close(fig)
+        disties = np.array([enc_simps, dec_simps]).flatten()
+        pkl.dump(disties, open(os.path.join(model_weight_folder, f"all_integrated_areas.pkl"),'wb'))
 
         full_weight_diff_dict = {**{lab:layer for lab, layer in zip(enc_labels, enc_weights_diff.T)}, 
                                  **{lab:layer for lab, layer in zip(dec_labels, dec_weights_diff.T)}}
@@ -232,44 +217,17 @@ for model, model_name in zip(model_folders, models):
         del enc_supports, dec_supports, enc_pdfs, dec_pdfs
 
         all_divergences = np.concatenate([enc_divergences, dec_divergences], axis=0).T
-        all_bws = np.concatenate([enc_bws, dec_bws], axis=0).T
         column_labels = enc_labels+dec_labels
 
 
         data_frame = pd.DataFrame(data=all_divergences, columns=column_labels, index=np.arange(all_divergences.shape[0])+1)
         data_frame.to_csv(os.path.join(model_weight_folder, "divergence_results.csv"))
-
-        data_frame = pd.DataFrame(data=all_bws, columns=column_labels, index=np.arange(all_bws.shape[0])+1)
-        data_frame.to_csv(os.path.join(model_weight_folder, "bandwidth_results.csv"))
+        if isinstance(bw, str):
+            all_bws = np.concatenate([enc_bws, dec_bws], axis=0).T
+            data_frame = pd.DataFrame(data=all_bws, columns=column_labels, index=np.arange(all_bws.shape[0])+1)
+            data_frame.to_csv(os.path.join(model_weight_folder, "bandwidth_results.csv"))
+            del all_bws
 
         del enc_divergences, dec_divergences, all_divergences
-        del enc_bws, dec_bws, all_bws
-        del data_frame
+        del enc_bws, dec_bws, enc_simps, dec_simps, data_frame
         print()
-    
-    disties = np.array(disties)
-
-    pkl.dump(disties, open(os.path.join(model, f"all_integrated_areas_{bw}.pkl"),'wb'))
-
-
-    # fig, ax = plt.subplots()
-
-    # ax.hist(disties.flatten(), bins='auto', density=True)
-    # ax.set(xlabel="Areas", ylabel="Density", title=f"Area Deviation for {model_name.replace('_',' ').capitalize()}",
-           # xlim=(disties.min(), disties.max()))
-    
-    # fig.tight_layout()
-    # fig.savefig(os.path.join(model, f"area_deviation.png"))
-    # plt.close(fig)
-    
-    # ns, _, _ =ux.hist(disties.flatten(), bins='auto', density=True, label=model_name.replace('_',' ').capitalize())
-    # ux.set(xlabel="Areas", xlim=(disties.min(), disties.max()), title=model_name.replace('_',' ').capitalize(),
-           # ylim=(0,1.1*np.max(ns)))
-    del disties
-
-# uxes[0].set_ylabel("Density")
-# uxes[-1].tick_params(axis='y', which='both', length=0)
-
-# fug.tight_layout()
-# fug.savefig(os.path.join(examples_folder, "area_devs.png"))
-# plt.close(fug)

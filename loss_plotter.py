@@ -25,14 +25,13 @@ plt.rcParams.update(**styledict)
 
 
 examples_folder = os.path.join(os.getcwd(), "examples")
-models = os.listdir(examples_folder)
+models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)[1] == '']
 model_folders = [os.path.join(examples_folder, model, "trained_models") for model in models]
 
 cutoffs = {'duffing': 5, 'duffing_sd': 5, 'van_der_pol': 9}
 
 for model_folder, model_name in zip(model_folders, models):
 
-    # [os.remove(os.path.join(examples_folder, model_name, file)) for file in os.listdir(os.path.join(examples_folder, model_name)) if file.endswith('.png')]
 
     individual_runs = os.listdir(model_folder)[:cutoffs[model_name]]
     individual_runs_folder = [os.path.join(model_folder, individual_run) for individual_run in individual_runs]
@@ -41,7 +40,7 @@ for model_folder, model_name in zip(model_folders, models):
 
     lat_dims = []
 
-    fig, ax2 = plt.subplots()#, sharex='col')
+    fig, ax2 = plt.subplots()
 
     for color, dim_run, dim_run_folder in zip(colors, individual_runs, individual_runs_folder):
 
@@ -77,7 +76,7 @@ for model_folder, model_name in zip(model_folders, models):
     ax2.tick_params(axis='both')
     ax2.legend(loc='best', fontsize=10, ncol=5)
 
-    fig.suptitle(f"Model: {model_name.replace('_', ' ').capitalize()}", size=25)
+    #fig.suptitle(f"Model: {model_name.replace('_', ' ').capitalize()}", size=25)
 
 
     fig.tight_layout()

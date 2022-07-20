@@ -19,7 +19,6 @@ examples_folder = os.path.join(os.getcwd(), "examples")
 model_folders = [os.path.join(examples_folder, model) for model in [file for file in os.listdir(examples_folder) if os.path.splitext(file)[-1] == '']]
 
 for model_folder in model_folders:
-    print(model_folder.split('\\')[-1])
 
     trained_folder = os.path.join(model_folder, "trained_models")
 
