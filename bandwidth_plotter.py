@@ -28,13 +28,13 @@ examples_folder = os.path.join(os.getcwd(), "examples")
 models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)[1] == '']
 model_folders = [os.path.join(examples_folder, model, "trained_models") for model in models]
 
-cutoffs = {'duffing': 5, 'duffing_sd': 5, 'van_der_pol': 9}
+# cutoffs = {'duffing': 5, 'duffing_sd': 5, 'van_der_pol': 9}
 
 for model_folder, model_name in zip(model_folders, models):
 
     # [os.remove(os.path.join(examples_folder, model_name, file)) for file in os.listdir(os.path.join(examples_folder, model_name)) if file.endswith('.png')]
 
-    individual_runs = os.listdir(model_folder)[:cutoffs[model_name]]
+    individual_runs = os.listdir(model_folder)
     individual_runs_folder = [os.path.join(model_folder, individual_run) for individual_run in individual_runs]
 
     average_band_dict = dict()

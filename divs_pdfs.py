@@ -97,6 +97,7 @@ def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ', label='Enc pdfs'):
     supports = [None]*weight_diffs.shape[1]
     bands = [None]*weight_diffs.shape[1]
     simps_areas = [None]*weight_diffs.shape[1]
+    entropies = [None]*weight_diffs.shape[1]
 
 
     for ii, layer in enumerate(weight_diffs.T):
@@ -104,9 +105,12 @@ def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ', label='Enc pdfs'):
         layer = np.array([ii for ii in layer])
         full_overshoot = .1*np.ptp(layer)
         full_support = np.linspace(layer.min()-full_overshoot, layer.max()+full_overshoot, 5001)
+        dx = full_support[1] - full_support[0]
         layer_pdfs = [None]*layer.shape[0]
         layer_bandwidths = [None]*layer.shape[0]
         layer_simps_area = [None]*layer.shape[0]
+        layer_entropies = [None]*layer.shape[0]
+
 
         for jj, data in enumerate(layer):
             
@@ -124,15 +128,18 @@ def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ', label='Enc pdfs'):
             
             layer_simps_area[jj] = simpson_area
             layer_pdfs[jj] = pdf
+            layer_entropies[jj] = np.sum(np.where(pdf > 1e-9, pdf*np.log(pdf), 0))*dx
+
         
         pdfs[ii] = layer_pdfs
         supports[ii] = full_support
         bands[ii] = layer_bandwidths
         simps_areas[ii] = layer_simps_area
+        entropies[ii] = layer_entropies
 
         printProgressBar(ii, label, weight_diffs.shape[1])
 
-    return np.array(pdfs), np.array(supports), np.array(bands), np.array(simps_areas)
+    return np.array(pdfs), np.array(supports), np.array(bands), np.array(simps_areas), np.array(entropies)
 
 bw = "ISJ"
 
@@ -198,8 +205,8 @@ for model, model_name in zip(model_folders, models):
         del full_weight_dict
 
 
-        enc_pdfs, enc_supports, enc_bws, enc_simps = pdf_creator(enc_weights_diff, kde_bw=bw)
-        dec_pdfs, dec_supports, dec_bws, dec_simps = pdf_creator(dec_weights_diff, kde_bw=bw, label='Dec pdfs')
+        enc_pdfs, enc_supports, enc_bws, enc_simps, enc_entropies = pdf_creator(enc_weights_diff, kde_bw=bw)
+        dec_pdfs, dec_supports, dec_bws, dec_simps, dec_entropies = pdf_creator(dec_weights_diff, kde_bw=bw, label='Dec pdfs')
         disties = np.array([enc_simps, dec_simps]).flatten()
         pkl.dump(disties, open(os.path.join(model_weight_folder, f"all_integrated_areas.pkl"),'wb'))
 
@@ -217,17 +224,22 @@ for model, model_name in zip(model_folders, models):
         del enc_supports, dec_supports, enc_pdfs, dec_pdfs
 
         all_divergences = np.concatenate([enc_divergences, dec_divergences], axis=0).T
+        all_entropies = np.concatenate([enc_entropies, dec_entropies], axis=0).T
         column_labels = enc_labels+dec_labels
 
 
         data_frame = pd.DataFrame(data=all_divergences, columns=column_labels, index=np.arange(all_divergences.shape[0])+1)
         data_frame.to_csv(os.path.join(model_weight_folder, "divergence_results.csv"))
+        data_frame = pd.DataFrame(data=all_entropies, columns=column_labels, index=np.arange(all_entropies.shape[0])+1)
+        data_frame.to_csv(os.path.join(model_weight_folder, "entropy_results.csv"))
+
+
         if isinstance(bw, str):
             all_bws = np.concatenate([enc_bws, dec_bws], axis=0).T
             data_frame = pd.DataFrame(data=all_bws, columns=column_labels, index=np.arange(all_bws.shape[0])+1)
             data_frame.to_csv(os.path.join(model_weight_folder, "bandwidth_results.csv"))
             del all_bws
 
-        del enc_divergences, dec_divergences, all_divergences
-        del enc_bws, dec_bws, enc_simps, dec_simps, data_frame
+        del enc_divergences, dec_divergences, all_divergences, all_entropies
+        del enc_bws, dec_bws, enc_simps, dec_simps, data_frame, enc_entropies, dec_entropies
         print()

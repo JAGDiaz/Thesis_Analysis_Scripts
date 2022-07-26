@@ -99,12 +99,10 @@ eqn_dict = {"nonlinear": "$f(x)=-\\frac{a x^2}{x^2 + b} + c$",
             "exp_2": "$f(x) = ax^b + c$"}
 keys = list(model_dict.keys())
 num_rows = len(keys)//2 if (not len(keys) % 2) else (len(keys)//2 + 1)
-# colors = ['cyan', 'purple', 'red', 'brown', 'hotpink']
 
-transient_percent = .2
+transient_percent = 0
 
-#fitting_func = "linear"
-#model_to_fit = model_dict[fitting_func]
+
 
 for model, model_name in zip(model_folders, models):
     print(f"Generating plots for {model_name}.")
@@ -119,7 +117,7 @@ for model, model_name in zip(model_folders, models):
         divs_folder = os.path.join(trained_folder, dim_run, "bandwidth_ISJ")
         
         [os.remove(os.path.join(divs_folder,file)) for file in os.listdir(divs_folder) if file.endswith('.png')]
-        divs_file = os.path.join(divs_folder, "divergence_results.csv")
+        divs_file = os.path.join(divs_folder, "entropy_results.csv")
 
         if not os.path.exists(divs_file):
             continue
@@ -151,7 +149,7 @@ for model, model_name in zip(model_folders, models):
 
             ax.grid(True, which='both', axis='both')
             ax.set_xlabel("Inter-epoch")
-            ax.set_ylabel("$D_{SKL}$")
+            ax.set_ylabel("Entropy")
             ax.tick_params(axis='both')
             ax.yaxis.set_minor_formatter(FormatStrFormatter("%.1f"))
             #ax.legend(loc='best', fontsize=17.5)
@@ -159,6 +157,6 @@ for model, model_name in zip(model_folders, models):
             ax.set_yscale('log')
 
             fig.tight_layout()
-            fig.savefig(os.path.join(divs_folder, f"div_plot_linear_{col}.png"))
+            fig.savefig(os.path.join(divs_folder, f"ent_plot_linear_{col}.png"))
             plt.close(fig)
             del fig, ax, log10_datum, datum

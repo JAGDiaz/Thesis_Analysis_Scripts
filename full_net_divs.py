@@ -4,12 +4,13 @@ import sys
 import h5py 
 import numpy as np
 import pandas as pd
-from KDEpy import TreeKDE, NaiveKDE
+from KDEpy import TreeKDE, NaiveKDE, FFTKDE
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import pickle as pkl
 from numba import vectorize
 import warnings
+import matplotlib.animation as anime
 
 styledict = {'axes.grid':True,
              'axes.grid.axis': 'both',
@@ -30,6 +31,9 @@ styledict = {'axes.grid':True,
              'savefig.format':'png'}
 plt.rcParams.update(**styledict)
 
+def computeArea(pos):
+    x, y = (zip(*pos))
+    return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
 
 def walk_h5(file_handle, space="", num_spaces=2):
     for key in file_handle.keys():
@@ -158,10 +162,18 @@ for model, model_name in zip(model_folders, models):
         lat_dim = fold_components[-2]
         run_time = fold_components[-1]
 
-        model_weight_folder = os.path.join(trained_folder, dim_run)
-        weight_files = [os.path.join(model_weight_folder, "weights_by_epoch", file) for file in os.listdir(model_weight_folder) if file.endswith('.h5')]
+        model_weight_folder = os.path.join(trained_folder, dim_run, "weights_by_epoch")
+        save_path = os.path.join(trained_folder, dim_run, "full_net")
+        
+        #if os.path.exists(os.path.join(save_path, "full_net_entropy.png")):
+        #   continue
 
-        if len(weight_files) != 1000:# or os.path.exists(os.path.join(model_weight_folder, 'divergence_results.csv')):
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+
+        weight_files = [os.path.join(model_weight_folder, file) for file in os.listdir(model_weight_folder) if file.endswith('.h5')]
+
+        if len(weight_files) != 1000:
             continue
 
         weights = [None]*len(weight_files)
@@ -193,13 +205,68 @@ for model, model_name in zip(model_folders, models):
 
         del weights
 
-        for diff in diff_weights:
+        overshoot = .1*np.ptp(diff_weights)
+        full_support = np.linspace(diff_weights.min()-overshoot, diff_weights.max()+overshoot, 5001)
+        dx = full_support[1] - full_support[0]
 
-            n, _, _ = plt.hist(diff, bins='auto', density=True)
-            plt.xlim(diff.min(), diff.max())
-            plt.ylim(0, 1.1*np.max(n))
-            plt.show()
+        entropy = np.zeros(diff_weights.shape[0])
+        inter_epoch = np.arange(entropy.size) + 1
 
+        meta = dict(title=f"pdf evolution of {model_name}", artist="Matplotlib")
+        writer = anime.FFMpegWriter(fps=20, metadata=meta)
+
+        fig, ax = plt.subplots(figsize=(10,7))
+
+        lines, = ax.plot(full_support, np.zeros(full_support.size), '-k')
+        ax.set(xlim=full_support[[0,-1]])
+        ax.set_xlabel("Weight", size=17.5)
+        ax.set_ylabel("Density", size=17.5)
+        ax.tick_params(which='both', length=9, labelsize=12.5)
+        ax.set_title(f"{model_name.replace('_', ' ').capitalize()}, Latent Dim: {lat_dim}, Inter epoch {0:03d},\n bw: ISJ, Int Area: {1:1.6f}", size=25)
+        ax.grid(True, axis='both', which='both')
+        gif_path = os.path.join(save_path, f"pdf_evolution.gif")
+
+        fig.tight_layout()
+        with writer.saving(fig, gif_path, 100):
+            for ii, diff in enumerate(diff_weights):
+
+                estimator = FFTKDE(kernel='epa', bw='ISJ').fit(diff)
+                pdf = estimator.evaluate(full_support)
+
+                lines.set_data(full_support, pdf)
+
+                poly_coll = plt.fill_between(full_support, pdf, color='#1f77b4')
+
+                path = poly_coll.get_paths()[0]
+                verts = path.vertices
+                area = computeArea(verts)
+
+                ax.set_title(f"{model_name.replace('_', ' ').capitalize()}, Latent Dim: {lat_dim}, Inter epoch {ii+1:03d},\n bw: ISJ, Int Area: {area:1.6f}", size=25)
+
+                writer.grab_frame()
+                poly_coll.remove()
+
+                entropy[ii] = np.sum(np.where(pdf > 1e-9, pdf*np.log(pdf), 0))*dx
+                printProgressBar(ii, "pdfs and entropy", inter_epoch[-1])
+
+        plt.close(fig)
+
+        fig, ax = plt.subplots()
+
+        ax.plot(inter_epoch, entropy, 'ok')
+        ax.set_yscale('log')
+        ax.grid(True, which='both', axis='both')
+        ax.set(xlabel="Inter-epoch", ylabel="Entropy", title=f"{model_name.replace('_',' ').capitalize()}, Latent Dim {lat_dim}")
+
+        fig.tight_layout()
+        fig.savefig(os.path.join(save_path, "full_net_entropy.png"))
+        plt.close(fig)
+
+
+
+
+
+            
 
 
 

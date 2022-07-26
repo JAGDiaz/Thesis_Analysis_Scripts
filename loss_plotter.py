@@ -28,17 +28,18 @@ examples_folder = os.path.join(os.getcwd(), "examples")
 models = [file for file in os.listdir(examples_folder) if os.path.splitext(file)[1] == '']
 model_folders = [os.path.join(examples_folder, model, "trained_models") for model in models]
 
-cutoffs = {'duffing': 5, 'duffing_sd': 5, 'van_der_pol': 9}
+# cutoffs = {'duffing': 5, 'duffing_sd': 5, 'van_der_pol': 9}
 
 for model_folder, model_name in zip(model_folders, models):
 
 
-    individual_runs = os.listdir(model_folder)[:cutoffs[model_name]]
+    individual_runs = os.listdir(model_folder)
     individual_runs_folder = [os.path.join(model_folder, individual_run) for individual_run in individual_runs]
     color_map = plt.cm.get_cmap('tab20b', len(individual_runs))
     colors = color_map([qq for qq in range(len(individual_runs))])
 
     lat_dims = []
+    mins = []
 
     fig, ax2 = plt.subplots()
 
@@ -57,22 +58,16 @@ for model_folder, model_name in zip(model_folders, models):
         epoch = data_frame.index.values
 
         loss_data = data_frame[data_frame.columns[0]].values
+        smoothed_data = savgol_filter(loss_data, 31, 5)
 
-        # ax1.plot(epoch, loss_data, '-', label=lat_dim)
-        ax2.plot(epoch, savgol_filter(loss_data, 31, 5), '-', label=lat_dim)
+        ax2.plot(epoch, 10**smoothed_data, '-', label=lat_dim)
 
 
-    #ax1.set_yscale('log')
-    # ax1.grid(True, which='both')
-    # ax1.set_ylabel(r"$\log_{10}$ Loss", size=17.5)
-    # ax1.tick_params(axis='y', labelsize=12.5, length=9)
-    # ax1.tick_params(axis='x', length=0)
-    # ax1.legend(loc='best', fontsize=10, ncol=5)        
-
-    # ax2.set_yscale('log')
+    # ax2.set_ylim(1e-3, 10)
+    ax2.set_yscale('log')
     ax2.grid(True, which='both')
     ax2.set_xlabel("Epoch")
-    ax2.set_ylabel(r"$\log_{10}$ Loss")
+    ax2.set_ylabel(r"Loss")
     ax2.tick_params(axis='both')
     ax2.legend(loc='best', fontsize=10, ncol=5)
 

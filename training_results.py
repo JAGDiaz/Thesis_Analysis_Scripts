@@ -80,7 +80,7 @@ for model, model_name in zip(model_folders, models):
             hyp_params['batch_size'] = 128
             hyp_params['phys_dim'] = 2
             hyp_params['latent_dim'] = int(lat_dim)
-            hyp_params['hidden_activation'] = myactivation if model_name == 'duffing' else tf.keras.activations.relu
+            hyp_params['hidden_activation'] = myactivation if model_name != 'van_der_pol' else tf.keras.activations.relu
             hyp_params['bias_initializer'] = tf.keras.initializers.Zeros
 
             # Encoding/Decoding Layer Parameters

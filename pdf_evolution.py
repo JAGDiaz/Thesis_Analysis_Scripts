@@ -59,7 +59,6 @@ for model, model_name in zip(model_folders, models):
                     continue
 
                 y, x = pdf_dict[layer]
-                # y = savgol_filter(y, 255, 5, axis=1)
 
                 meta = dict(title=f"pdf evolution of {layer}", artist="Matplotlib")
                 writer = anime.FFMpegWriter(fps=20, metadata=meta)
