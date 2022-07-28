@@ -52,8 +52,12 @@ for model, model_name in zip(model_folders, models):
 
     feed_data = tf.cast(feed_data[choices], tf.float64)
 
+    dim_runs = os.listdir(trained_folder)
 
-    for dim_run in os.listdir(trained_folder):
+    fug, uxes = plt.subplots(len(dim_runs)//3, 3, figsize=(30, 5*len(dim_runs)//3))
+    uxes = uxes.flatten()
+
+    for ux, dim_run in zip(uxes, dim_runs):
         print(f"{dim_run}", end="... ")
         fold_components = dim_run.split('_')
         lat_dim = fold_components[-2]
@@ -111,10 +115,19 @@ for model, model_name in zip(model_folders, models):
             fig.tight_layout()
             fig.savefig(os.path.join(model, f"trajectories_{lat_dim}.png"))
             plt.close(fig)
+
+            ux.plot(*np.transpose(result_data[1], axes=[2,1,0]))
+            # ax.plot(*np.transpose(result_data[1], axes=[2,1,0])[:, :, 0], '.k', ms=5)
+            ux.set(xlabel="$x$", ylabel="$y$", title=f"Latent Dimension: {lat_dim}")
+
+
             print("Done!")
 
         except Exception as e:
             print(e)
 
 
+    fug.tight_layout()
+    fug.savefig(os.path.join(model, f"experiment_trajectories.png"))
+    plt.close(fug)
 

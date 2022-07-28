@@ -100,7 +100,7 @@ eqn_dict = {"nonlinear": "$f(x)=-\\frac{a x^2}{x^2 + b} + c$",
 keys = list(model_dict.keys())
 num_rows = len(keys)//2 if (not len(keys) % 2) else (len(keys)//2 + 1)
 
-transient_percent = 0
+transient_percent = 0.2
 
 
 

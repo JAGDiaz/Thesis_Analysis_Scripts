@@ -90,7 +90,7 @@ for model_folder, model_name in zip(model_folders, models):
 
     for color, dim_run, dim_run_folder in zip(colors, individual_runs, individual_runs_folder):
 
-        data_file = os.path.join(dim_run_folder, "bandwidth_ISJ", "divergence_results.csv")
+        data_file = os.path.join(dim_run_folder, "bandwidth_ISJ", "entropy_results.csv")
         # loss_file = os.path.join(dim_run_folder, "losses_by_epoch.csv")
         
         if not os.path.exists(data_file):
@@ -102,9 +102,6 @@ for model_folder, model_name in zip(model_folders, models):
         fold_components = dim_run.split('_')
         lat_dim = fold_components[-2]
         run_time = fold_components[-1]
-
-        if os.path.exists(os.path.join(dim_run_folder, "loss_plot.png")):
-            os.remove(os.path.join(dim_run_folder, "loss_plot.png"))
 
 
         lat_dims.append(lat_dim)
@@ -132,7 +129,7 @@ for model_folder, model_name in zip(model_folders, models):
     lat_dims = np.array(lat_dims)
 
     slope_frame = pd.DataFrame(columns_dict, index=lat_dims)
-    slope_frame.to_csv(os.path.join(examples_folder, model_name, "linear_fit_slopes.csv"))
+    slope_frame.to_csv(os.path.join(examples_folder, model_name, "entropy_linear_fit_slopes.csv"))
     
     slope_data = slope_frame.values
     average_slope_by_dim = slope_data.mean(axis=1)
@@ -149,10 +146,10 @@ for model_folder, model_name in zip(model_folders, models):
     #ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}", size=25)
 
     fig.tight_layout()
-    fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit.png"))
+    fig.savefig(os.path.join(examples_folder, model_name, f"ent_slope_linear_fit.png"))
 
     fig.set_size_inches(10,10)
-    fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit_square.png"))
+    fig.savefig(os.path.join(examples_folder, model_name, f"ent_slope_linear_fit_square.png"))
 
 
     plt.close(fig)
@@ -168,14 +165,14 @@ for model_folder, model_name in zip(model_folders, models):
         ax.bar(lat_dims, datum, bottom=0, color=colors)
         ax.ticklabel_format(axis='y', style='sci', scilimits=(-1,1))
         ax.set_xlabel("Lifting Dimension")
-        ax.set_ylabel("Slope of linear fit of $\\log_{10}$ Divergences")
+        ax.set_ylabel("Slope of linear fit of $\\log_{10}$ Entropies")
         over = .1*np.ptp(slope_data)
         ax.set_ylim(slope_data.min()-over, slope_data.max()+over)
         ax.tick_params(axis='both')        
         ax.set_title(f"Layer: {column_name.replace('_',' ').capitalize()}", size=25)
 
         fig.tight_layout()
-        fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit_{column_name}.png"))
+        fig.savefig(os.path.join(examples_folder, model_name, f"entropy_slope_linear_fit_{column_name}.png"))
 
         plt.close(fig)
 
@@ -187,7 +184,7 @@ for model_folder, model_name in zip(model_folders, models):
     for (column_name, fig, ax) in figures_and_axes:
         ax.grid(True, which='both')
         ax.set_xlabel("Inter-epoch", size=15)
-        ax.set_ylabel("$\log_{10}$ Divergences", size=15)
+        ax.set_ylabel("$\log_{10}$ Entropies", size=15)
         ax.tick_params(axis='both', length=9, labelsize=12.5)
         # ax.legend(loc='best', fontsize=10, ncol=5)
         ax.set_title(f"Layer: {column_name.replace('_',' ').capitalize()}", size=25)
@@ -201,7 +198,7 @@ for model_folder, model_name in zip(model_folders, models):
         #c_bar.set_ticklabels(lat_dims)
 
         fig.tight_layout()
-        fig.savefig(os.path.join(examples_folder, model_name, f"div_plot_linear_{column_name}.png"))
+        fig.savefig(os.path.join(examples_folder, model_name, f"ent_plot_linear_{column_name}.png"))
 
         plt.close(fig)
 
