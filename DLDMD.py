@@ -117,3 +117,8 @@ class DLDMD(keras.Model):
         return {**base_config,
                 'encoder': self.encoder,
                 'decoder': self.decoder}
+
+    def summary(self):
+        super().summary()
+        self.encoder.summary()
+        self.decoder.summary()

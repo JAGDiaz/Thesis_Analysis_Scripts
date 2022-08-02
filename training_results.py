@@ -53,8 +53,11 @@ for model, model_name in zip(model_folders, models):
     feed_data = tf.cast(feed_data[choices], tf.float64)
 
     dim_runs = os.listdir(trained_folder)
+    
+    rows = len(dim_runs)//3 if len(dim_runs) % 3 == 0 else (len(dim_runs)//3) + 1
 
-    fug, uxes = plt.subplots(len(dim_runs)//3, 3, figsize=(30, 5*len(dim_runs)//3))
+
+    fug, uxes = plt.subplots(rows, 3, figsize=(30, 10*len(dim_runs)//3))
     uxes = uxes.flatten()
 
     for ux, dim_run in zip(uxes, dim_runs):

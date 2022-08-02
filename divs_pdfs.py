@@ -1,4 +1,5 @@
 
+from hashlib import new
 import os
 import sys
 import h5py 
@@ -45,6 +46,17 @@ def continuous_KLD(p, q, x, tol=1e-12):
 def discrete_KLD(p, q, dx, tol=1e-12):
     return np.sum(np.where(p > tol, p * np.log(p / q), 0))*dx
 
+@njit
+def dis_KLD_jit(p, q, dx, tol=1e-12):
+
+    where = p > tol
+    new_p = p[where]
+    new_q = q[where]
+    div = 0
+    for ii in range(new_p.size):
+            div += new_p[ii]*np.log(new_p[ii]/new_q[ii])
+    return -div*dx
+
 def sym_KLD(p, q, x, vep=1e-12):
     return .5*(continuous_KLD(p, q, x, vep) + continuous_KLD(q, p, x, vep))
 
@@ -61,12 +73,22 @@ def epa_kernel(x):
 @njit
 def epa_density(x, x_vals, h):
     n = x_vals.size
+    recip_h = 1/h
     running_sum = np.zeros(x.size)
     for xi in x_vals:
-        running_sum += epa_kernel((x - xi)/h)
-    return running_sum/(n*h)
+        running_sum += epa_kernel((x - xi)*recip_h)
+    return recip_h*running_sum/n
 
-def get_diveregences(data_set, supports, label='Enc divs'):
+@njit
+def entropy_jit(p, dx, tol=1e-12):
+    where = p > tol
+    new_p = p[where]
+    ent = 0
+    for thing in new_p:
+            ent += thing*np.log(thing)
+    return -ent*dx
+
+def get_divergences(data_set, supports, label='Enc divs'):
 
     divs = np.zeros(shape=(data_set.shape[0], data_set.shape[1]-1))
     
@@ -128,7 +150,7 @@ def pdf_creator(weight_diffs, kde_kernel='epa', kde_bw='ISJ', label='Enc pdfs'):
             
             layer_simps_area[jj] = simpson_area
             layer_pdfs[jj] = pdf
-            layer_entropies[jj] = np.sum(np.where(pdf > 1e-9, pdf*np.log(pdf), 0))*dx
+            layer_entropies[jj] = entropy_jit(pdf, dx)
 
         
         pdfs[ii] = layer_pdfs
@@ -219,8 +241,8 @@ for model, model_name in zip(model_folders, models):
                     **{lab:(layer, support) for lab, support, layer in zip(dec_labels, dec_supports, dec_pdfs)}}
         pkl.dump(pdf_dict, open(os.path.join(model_weight_folder, "pdf_dict.pkl"),'wb'))
 
-        enc_divergences = get_diveregences(enc_pdfs, enc_supports)
-        dec_divergences = get_diveregences(dec_pdfs, dec_supports, label='Dec divs')        
+        enc_divergences = get_divergences(enc_pdfs, enc_supports)
+        dec_divergences = get_divergences(dec_pdfs, dec_supports, label='Dec divs')        
         del enc_supports, dec_supports, enc_pdfs, dec_pdfs
 
         all_divergences = np.concatenate([enc_divergences, dec_divergences], axis=0).T

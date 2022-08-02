@@ -165,8 +165,8 @@ for model, model_name in zip(model_folders, models):
         model_weight_folder = os.path.join(trained_folder, dim_run, "weights_by_epoch")
         save_path = os.path.join(trained_folder, dim_run, "full_net")
         
-        #if os.path.exists(os.path.join(save_path, "full_net_entropy.png")):
-        #   continue
+        if os.path.exists(os.path.join(save_path, "full_net_entropy.png")):
+           continue
 
         if not os.path.exists(save_path):
             os.mkdir(save_path)

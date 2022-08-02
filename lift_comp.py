@@ -152,6 +152,7 @@ for model_folder, model_name in zip(model_folders, models):
     fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit.png"))
 
     fig.set_size_inches(10,10)
+    fig.tight_layout()
     fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit_square.png"))
 
 
@@ -176,6 +177,12 @@ for model_folder, model_name in zip(model_folders, models):
 
         fig.tight_layout()
         fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit_{column_name}.png"))
+
+        fig.set_size_inches(10,3.75)
+        ax.set_ylabel(None)
+        ax.set_xlabel(None)
+        fig.tight_layout()
+        fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit_{column_name}_square.png"))
 
         plt.close(fig)
 

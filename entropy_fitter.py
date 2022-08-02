@@ -116,7 +116,7 @@ for model, model_name in zip(model_folders, models):
 
         divs_folder = os.path.join(trained_folder, dim_run, "bandwidth_ISJ")
         
-        [os.remove(os.path.join(divs_folder,file)) for file in os.listdir(divs_folder) if file.endswith('.png')]
+        # [os.remove(os.path.join(divs_folder,file)) for file in os.listdir(divs_folder) if file.endswith('.png')]
         divs_file = os.path.join(divs_folder, "entropy_results.csv")
 
         if not os.path.exists(divs_file):
