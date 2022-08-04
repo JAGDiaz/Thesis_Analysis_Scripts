@@ -107,6 +107,6 @@ for model_folder, model_name in zip(model_folders, models):
 
 
     fug.tight_layout()
-    fug.savefig(os.path.join(examples_folder, model_name, f"bandwidth_averages_plot.png"))
+    fug.savefig(os.path.join(examples_folder, model_name, f"{model_name}_bandwidth_averages_plot.png"))
     
     plt.close(fug)

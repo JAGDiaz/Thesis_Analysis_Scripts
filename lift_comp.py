@@ -149,7 +149,7 @@ for model_folder, model_name in zip(model_folders, models):
     #ax.set_title(f"Model: {model_name.replace('_',' ').capitalize()}", size=25)
 
     fig.tight_layout()
-    fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit.png"))
+    fig.savefig(os.path.join(examples_folder, model_name, f"{model_name}_slope_linear_fit.png"))
 
     fig.set_size_inches(10,10)
     fig.tight_layout()
@@ -176,7 +176,7 @@ for model_folder, model_name in zip(model_folders, models):
         ax.set_title(f"Layer: {column_name.replace('_',' ').capitalize()}", size=25)
 
         fig.tight_layout()
-        fig.savefig(os.path.join(examples_folder, model_name, f"slope_linear_fit_{column_name}.png"))
+        fig.savefig(os.path.join(examples_folder, model_name, f"{model_name}_slope_linear_fit_{column_name}.png"))
 
         fig.set_size_inches(10,3.75)
         ax.set_ylabel(None)
@@ -208,7 +208,7 @@ for model_folder, model_name in zip(model_folders, models):
         #c_bar.set_ticklabels(lat_dims)
 
         fig.tight_layout()
-        fig.savefig(os.path.join(examples_folder, model_name, f"div_plot_linear_{column_name}.png"))
+        fig.savefig(os.path.join(examples_folder, model_name, f"{model_name}_div_plot_linear_{column_name}.png"))
 
         plt.close(fig)
 

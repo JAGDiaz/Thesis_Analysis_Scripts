@@ -47,7 +47,7 @@ for model, model_name in zip(model_folders, models):
     ax.plot(*np.transpose(feed_data[choices], axes=[2,1,0]))
     ax.set(xlabel="$x$", ylabel="$y$", title=f"Validation Data")
     fig.tight_layout()
-    fig.savefig(os.path.join(model, "trajectories_00.png"))
+    fig.savefig(os.path.join(model, f"{model_name}_trajectories_00.png"))
     plt.close(fig)
 
     feed_data = tf.cast(feed_data[choices], tf.float64)
@@ -116,7 +116,7 @@ for model, model_name in zip(model_folders, models):
             # ax.plot(*np.transpose(result_data[1], axes=[2,1,0])[:, :, 0], '.k', ms=5)
             ax.set(xlabel="$x$", ylabel="$y$", title=f"Latent Dimension: {lat_dim}")
             fig.tight_layout()
-            fig.savefig(os.path.join(model, f"trajectories_{lat_dim}.png"))
+            fig.savefig(os.path.join(model, f"{model_name}_trajectories_{lat_dim}.png"))
             plt.close(fig)
 
             ux.plot(*np.transpose(result_data[1], axes=[2,1,0]))

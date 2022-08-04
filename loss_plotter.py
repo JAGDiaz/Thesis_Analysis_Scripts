@@ -75,7 +75,7 @@ for model_folder, model_name in zip(model_folders, models):
 
 
     fig.tight_layout()
-    fig.savefig(os.path.join(examples_folder, model_name, f"loss_plots.png"))
+    fig.savefig(os.path.join(examples_folder, model_name, f"{model_name}_loss_plots.png"))
 
     fig.set_size_inches(10,10)
     fig.tight_layout()

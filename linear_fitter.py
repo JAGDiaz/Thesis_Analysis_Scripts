@@ -159,6 +159,6 @@ for model, model_name in zip(model_folders, models):
             ax.set_yscale('log')
 
             fig.tight_layout()
-            fig.savefig(os.path.join(divs_folder, f"div_plot_linear_{col}.png"))
+            fig.savefig(os.path.join(divs_folder, f"{model_name}_div_plot_linear_{col}.png"))
             plt.close(fig)
             del fig, ax, log10_datum, datum
