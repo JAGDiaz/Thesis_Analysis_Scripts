@@ -4,7 +4,6 @@ import numpy as np
 import pickle as pkl
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from tensorflow import keras
 import DLDMD as dl
 styledict = {'axes.grid':True,
              'axes.grid.axis': 'both',
